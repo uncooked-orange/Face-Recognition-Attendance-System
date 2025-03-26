@@ -30,7 +30,7 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
 
 3. **Set up Firebase:**
    - Create a Firebase project on the [Firebase Console](https://console.firebase.google.com/).
-   - Enable Firebase Authentication and Firestore Database.
+   - Enable Firebase Authentication and Firebase Realtime Database.
    - Download the `firebase-adminsdk` credentials JSON file and add it to the folder As `AdminCredentials.json`.
    - Add a new web app to the firebase projects and copy the credentials and add it to the folder As `UserCredentials.json`.
      
