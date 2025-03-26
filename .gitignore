@@ -1,0 +1,8 @@
+testdb.py
+testGui.py
+
+__pycache__/
+Models/
+
+AdminCredentials.json
+UserCredentials.json
