@@ -2,6 +2,7 @@ testdb.py
 testGui.py
 
 __pycache__/
+*.pyc
 Models/
 
 AdminCredentials.json
