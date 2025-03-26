@@ -33,8 +33,7 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
    - Enable Firebase Authentication and Firestore Database.
    - Download the `firebase-adminsdk` credentials JSON file and add it to the folder As `AdminCredentials.json`.
    - Add a new web app to the firebase projects and copy the credentials and add it to the folder As `UserCredentials.json`.
-   - Place the JSON file in the project folder and update the script to point to it.
-
+     
 4. **Run the application:**
 
   ### For the Admin SIDE:-
