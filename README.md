@@ -28,13 +28,29 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
    git clone https://github.com/yourusername/attendance-system.git
    cd attendance-system
 
+2. **Install Python and Requirements:**
+   - Make sure you have python installed with at least the `^3.18.9` version
+   - Run the command
+   ```bash
+   pip install -r requirements.txt
+   ```
+   - Make Sure to install CMAKE for the dlib to work aswell
+
 3. **Set up Firebase:**
    - Create a Firebase project on the [Firebase Console](https://console.firebase.google.com/).
    - Enable Firebase Authentication and Firebase Realtime Database.
-   - Download the `firebase-adminsdk` credentials JSON file and add it to the folder As `AdminCredentials.json`.
-   - Add a new web app to the firebase projects and copy the credentials and add it to the folder As `UserCredentials.json`.
+   - Download the `firebase-adminsdk` credentials JSON file and add it to the credentials folder As `AdminCredentials.json`.
+   - Add a new web app to the firebase project and copy the credentials and add it to the credentials folder As `UserCredentials.json`.
+  
+4. **Acquire the face detection related models:**
+   - Download whichever YOLO model you would like, make sure it is in `.onnx` format. and add it to the `/Models` folder
+   - Add the dlib `Shape_predictor_68_face_landmarks.dat`
+  
+4. **Separate into the ADMIN side and the LECTURER side**
+   - When actually deploying, make sure the `LecturerSideScripts, LecturerUtilites, GeneralUtlitiles` and only the `UserCredentials` of the `Credentials` folder         and all the models in the `Models` folder are on the lecturer side machine
+   - Put the `AdminSideScripts, AdminUtilities, GeneralUtilites` and Both the `UserCredentials, AdminCredentials` and all the models
      
-4. **Run the application:**
+5. **Run the application:**
 
   ### For the Admin SIDE:-
    ```bash
