@@ -8,115 +8,28 @@ from typing import List, Dict, Optional, Tuple
 
 class FaceRecognitionSystem:
     def __init__(self, 
-                 model_path: str = "../Models/best.onnx", # Open Neural Network Exchange (ONNX) model
-                 landmarks_path: str = "../Models/shape_predictor_68_face_landmarks.dat"):
+                 model_path: str = "Models/face_detection_yunet_2023mar.onnx", 
+                 landmarks_path: str = "Models/shape_predictor_68_face_landmarks.dat"):
         """
         Initialize the Face Recognition System
         
         Parameters
         ----------
         model_path : str
-            Path to the YOLO ONNX model file
+            Path to the YuNet ONNX model file
         landmarks_path : str
             Path to the dlib facial landmarks predictor file
         """
-        # Initialize YOLO model
+        # Initialize face detection using YuNet
         self.model_path = model_path
-        self.net = cv2.dnn.readNetFromONNX(model_path)
+        self.face_detector = cv2.FaceDetectorYN_create(model_path, "", (640, 480))
         
         # Initialize landmark detection using dlib 68 landmarks predictor model
         self.landmark_predictor = dlib.shape_predictor(landmarks_path)
         
         # Database for face recognition
         self.face_database: Dict[str, List[float]] = {}
-        
-        # YOLO parameters
-        self.input_width = 640
-        self.input_height = 640
-        self.score_threshold = 0.5
-        self.nms_threshold = 0.45
 
-    def detect_faces(self, img: np.ndarray, scale_factor: float = 1.0) -> np.ndarray:
-        """
-        Detect faces in an image using YOLO
-        
-        Parameters
-        ----------
-        img : numpy.ndarray
-            Input image for face detection
-        scale_factor : float, optional
-            Scale factor to adjust image size, by default 1.0
-        
-        Returns
-        -------
-        numpy.ndarray
-            Detected faces with coordinates [x, y, width, height]
-        """
-        # Get original image dimensions
-        height, width = img.shape[:2]
-        
-        # Prepare image for YOLO
-        blob = cv2.dnn.blobFromImage(
-            img, 
-            1/255.0, 
-            (self.input_width, self.input_height), 
-            swapRB=True, 
-            crop=False
-        )
-        
-        # Set input and get output
-        self.net.setInput(blob)
-        outputs = self.net.forward()[0]
-        
-        # Process detections
-        boxes = []
-        confidences = []
-        
-        for detection in outputs:
-            confidence = detection[4]
-            
-            if confidence > self.score_threshold:
-                # YOLO outputs normalized coordinates
-                x = detection[0]
-                y = detection[1]
-                w = detection[2]
-                h = detection[3]
-                
-                # Convert normalized coordinates to pixel coordinates
-                x_pixel = int((x - w/2) * width)
-                y_pixel = int((y - h/2) * height)
-                w_pixel = int(w * width)
-                h_pixel = int(h * height)
-                
-                # Ensure coordinates are within image bounds
-                x_pixel = max(0, x_pixel)
-                y_pixel = max(0, y_pixel)
-                w_pixel = min(w_pixel, width - x_pixel)
-                h_pixel = min(h_pixel, height - y_pixel)
-                
-                boxes.append([x_pixel, y_pixel, w_pixel, h_pixel])
-                confidences.append(float(confidence))
-        
-        # Convert to numpy array
-        if boxes:
-            # Properly format boxes for NMSBoxes
-            boxes_for_nms = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in boxes]
-            
-            # Apply Non-Maximum Suppression
-            indices = cv2.dnn.NMSBoxes(
-                boxes_for_nms,
-                confidences,
-                self.score_threshold,
-                self.nms_threshold
-            ).flatten()
-            
-            # Convert selected boxes back to [x, y, w, h] format
-            selected_faces = np.array([boxes[i] for i in indices])
-            return selected_faces
-        
-        return np.array([])
-
-    # Rest of the methods remain the same
     def load_students_from_json(self, json_path: str, class_name: str) -> None:
         """
         Load student data from AttendanceManager JSON file and update face database
@@ -145,7 +58,56 @@ class FaceRecognitionSystem:
         except Exception as e:
             print(f"Error loading student data: {e}")
 
-    def align_face(self, img: np.ndarray, face: List[int], scale_factor: float = 0.27) -> np.ndarray:
+    def detect_faces(self, img: np.ndarray, scale_factor: float = 1.0) -> np.ndarray:
+        """
+        Detect faces in an image using YuNet
+        
+        Parameters
+        ----------
+        img : numpy.ndarray
+            Input image for face detection
+        scale_factor : float, optional
+            Scale factor to adjust image size, by default 1.0
+        
+        Returns
+        -------
+        numpy.ndarray
+            Detected faces with coordinates
+        """
+        # Get original image dimensions
+        height, width = img.shape[:2]
+        
+        # Calculate dynamic input size
+        input_width = int(width * scale_factor)
+        input_height = int(height * scale_factor)
+        
+        # Set input size and resize image
+        self.face_detector.setInputSize((input_width, input_height))
+        resized_img = cv2.resize(img, (input_width, input_height), interpolation=cv2.INTER_AREA)
+
+        # Detect faces
+        _, results = self.face_detector.detect(resized_img)
+
+        # If no faces detected, return empty array
+        if results is None or len(results) == 0:
+            return np.array([])
+
+        # Scale back the detected faces to original image coordinates
+        faces = results[:, :4].astype(np.int32)
+        
+        # Scale coordinates back to original image size
+        scale_x = width / input_width
+        scale_y = height / input_height
+        
+        scaled_faces = faces.copy()
+        scaled_faces[:, 0] = (faces[:, 0] * scale_x).astype(np.int32)  # x
+        scaled_faces[:, 1] = (faces[:, 1] * scale_y).astype(np.int32)  # y
+        scaled_faces[:, 2] = (faces[:, 2] * scale_x).astype(np.int32)  # width
+        scaled_faces[:, 3] = (faces[:, 3] * scale_y).astype(np.int32)  # height
+        
+        return scaled_faces
+
+    def align_face(self, img: np.ndarray, face: List[int],scale_factor: float = 0.27) -> np.ndarray:
         """
         Align a detected face based on eye positions
         
@@ -268,7 +230,7 @@ class FaceRecognitionSystem:
         embedding : List[float]
             Face embedding to match
         threshold : float, optional
-            Distance threshold for a match, by default 0.70
+            Distance threshold for a match, by default 0.50
         
         Returns
         -------
@@ -281,10 +243,11 @@ class FaceRecognitionSystem:
         # Compare against database
         for ID, db_embedding in self.face_database.items():
             distance = cosine(embedding, db_embedding)
+            
             if distance < min_distance:
                 min_distance = distance
                 match = ID
-                
+
         # Return match if below threshold
         return match if min_distance < threshold else None
 
