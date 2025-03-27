@@ -3,14 +3,18 @@ from tkinter import messagebox
 import firebase_admin as fb
 from firebase_admin import credentials,auth,db
 import json
-from UtilityChecks import check_email_valid, check_user_exists
+import sys
+import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from GeneralUtilities.UtilityChecks import check_email_valid, check_user_exists
 # Get database URL from UserCredentials.json
-firebase_credentials_user = json.load(open("UserCredentials.json", "r"))
+firebase_credentials_user = json.load(open("Credentials/UserCredentials.json", "r"))
 database_credential = {"databaseURL" : firebase_credentials_user["databaseURL"]}
 
 # Initialize Firebase
-cred = credentials.Certificate("AdminCredentials.json")
+cred = credentials.Certificate("Credentials/AdminCredentials.json")
 fb.initialize_app(cred,database_credential)
 
 # get database reference

@@ -1,15 +1,13 @@
 import pyrebase as pb
-from UtilityChecks import check_email_valid, check_attendance_valid
+import json
+from GeneralUtilities.UtilityChecks import check_email_valid, check_attendance_valid
+import sys
+import os
 
-firebaseConfig = {
-  'apiKey': "AIzaSyBvqENPduLshnXGgmOooc0eTvHZMtU-NzI",
-  'authDomain': "face-recognition-attenda-9476f.firebaseapp.com",
-  'databaseURL': "https://face-recognition-attenda-9476f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  'projectId': "face-recognition-attenda-9476f",
-  'storageBucket': "face-recognition-attenda-9476f.appspot.com",
-  'messagingSenderId': "439802013226",
-  'appId': "1:439802013226:web:c46ee8f3581489662ec553"
-}
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Get Firebase configuration
+firebaseConfig = json.load(open("../Credentials/UserCredentials.json","r"))
 
 # Initialize Firebase
 firebase = pb.initialize_app(firebaseConfig)

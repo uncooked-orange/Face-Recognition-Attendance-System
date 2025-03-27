@@ -1,17 +1,22 @@
 import tkinter as tk
-from tkinter import messagebox
 import firebase_admin as fb
 import json
 from firebase_admin import credentials, db
-from UtilityChecks import check_branch_valid, check_stage_valid, check_semester_valid, check_class_exists, check_class_name_valid
+from tkinter import messagebox
+import sys
+import os
 
-firebase_credentials_user = json.load(open("UserCredentials.json", "r"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from GeneralUtilities.UtilityChecks import check_branch_valid, check_stage_valid, check_semester_valid, check_class_exists, check_class_name_valid
+
+firebase_credentials_user = json.load(open("Credentials/UserCredentials.json", "r"))
 database_credential = {"databaseURL" : firebase_credentials_user["databaseURL"]}
 
 # Initialize Firebase
 def initialize_firebase():
     try:
-        cred = credentials.Certificate("AdminCredentials.json")
+        cred = credentials.Certificate("Credentials/AdminCredentials.json")
         fb.initialize_app(cred, database_credential)
         return db
     except Exception as e:

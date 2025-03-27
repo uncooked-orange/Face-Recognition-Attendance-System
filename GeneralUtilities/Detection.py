@@ -8,8 +8,8 @@ from typing import List, Dict, Optional, Tuple
 
 class FaceRecognitionSystem:
     def __init__(self, 
-                 model_path: str = "Models/best.onnx", # Open Neural Network Exchange (ONNX) model
-                 landmarks_path: str = "Models/shape_predictor_68_face_landmarks.dat"):
+                 model_path: str = "../Models/best.onnx", # Open Neural Network Exchange (ONNX) model
+                 landmarks_path: str = "../Models/shape_predictor_68_face_landmarks.dat"):
         """
         Initialize the Face Recognition System
         

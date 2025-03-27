@@ -7,11 +7,16 @@ import os
 import cv2
 import threading
 import pyrebase as pb
-from UtilityChecks import check_email_valid, check_password_valid
-from StudentJSON import AttendanceManager
-from Detection import FaceRecognitionSystem
+import sys
+import os
 
-firebaseConfig = json.load(open("UserCredentials.json","r"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from GeneralUtilities.UtilityChecks import check_email_valid, check_password_valid
+from LecturerUtilities.StudentJSON import AttendanceManager
+from GeneralUtilities.Detection import FaceRecognitionSystem
+
+firebaseConfig = json.load(open("Credentials/UserCredentials.json","r"))
 
 class SignInApp:
     def __init__(self, root):

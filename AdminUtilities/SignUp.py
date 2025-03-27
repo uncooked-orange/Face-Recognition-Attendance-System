@@ -1,4 +1,9 @@
-from UtilityChecks import check_email_valid, check_password_valid, check_user_exists, check_stage_valid, check_study_valid, check_class_exists, check_branch_valid, check_name_valid
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from GeneralUtilities.UtilityChecks import check_email_valid, check_password_valid, check_user_exists, check_stage_valid, check_study_valid, check_class_exists, check_branch_valid, check_name_valid
 
 # get all classes with same branch and stage as student and add them to student
 def add_classes_to_student(stage, branch, Database):

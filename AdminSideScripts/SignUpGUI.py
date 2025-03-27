@@ -5,19 +5,23 @@ from PIL import Image, ImageTk
 import firebase_admin as fb
 import json
 from firebase_admin import credentials, db, auth
-from SignUp import sign_up_lecturer, sign_up_student
-from UtilityChecks import check_student_info
-from Detection import FaceRecognitionSystem
 import cv2
+import sys
+import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from AdminUtilities.SignUp import sign_up_lecturer, sign_up_student
+from GeneralUtilities.UtilityChecks import check_student_info
+from GeneralUtilities.Detection import FaceRecognitionSystem
 
 # Get database URL from UserCredentials.json
-firebase_credentials_user = json.load(open("UserCredentials.json", "r"))
+firebase_credentials_user = json.load(open("Credentials/UserCredentials.json", "r"))
 database_credential = {"databaseURL" : firebase_credentials_user["databaseURL"]}
 
 # Initialize Firebase
 try:
-    cred = credentials.Certificate("AdminCredentials.json")
+    cred = credentials.Certificate("Credentials/AdminCredentials.json")
     fb.initialize_app(cred, database_credential)
     database = db
     Auth = auth
