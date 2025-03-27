@@ -43,8 +43,8 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
    - Add a new web app to the firebase project and copy the credentials and add it to the credentials folder As `UserCredentials.json`.
   
 4. **Acquire the face detection related models:**
-   - Download whichever YOLO model you would like, make sure it is in `.onnx` format. and add it to the `/Models` folder
-   - Add the dlib `Shape_predictor_68_face_landmarks.dat`
+   - Download the yunet model `face_detection_yunet_2023mar.onnx` and add it to a `Models` folder
+   - Add the dlib `Shape_predictor_68_face_landmarks.dat` and add it to the `Models` folder
   
 4. **Separate into the ADMIN side and the LECTURER side**
    - When actually deploying, make sure the `LecturerSideScripts, LecturerUtilites, GeneralUtlitiles` and only the `UserCredentials` of the `Credentials` folder         and all the models in the `Models` folder are on the lecturer side machine
