@@ -29,7 +29,7 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
    cd attendance-system
 
 2. **Install Python and Requirements:**
-   - Make sure you have python installed with at least the `^3.18.9` version
+   - Make sure you have python installed with at least the `^3.8.9` version
    - Run the command
    ```bash
    pip install -r requirements.txt
