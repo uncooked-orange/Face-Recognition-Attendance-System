@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog
+from tkinter import messagebox, filedialog, ttk
 import jwt
 from datetime import datetime
 import json
@@ -25,7 +25,7 @@ class SignInApp:
         self.root.title("Attendance Management System")
 
         # Set window size and center it
-        window_width = 600
+        window_width = 650
         window_height = 300
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -35,16 +35,47 @@ class SignInApp:
         self.root.resizable(False, False)
 
         # Initializing frames
-        self.mode_selection_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.sign_in_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.classes_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.study_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.attendance_taking_method_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.select_week_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.camera_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.detection_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.attendance_frame = tk.Frame(self.root,bg="#EBECF0")
-        self.branch_frame = tk.Frame(self.root,bg="#EBECF0")
+        self.mode_selection_frame = tk.Frame(self.root,bg="white")
+        self.sign_in_frame = tk.Frame(self.root,bg="white")
+        self.classes_frame = tk.Frame(self.root,bg="white")
+        self.study_frame = tk.Frame(self.root,bg="white")
+        self.attendance_taking_method_frame = tk.Frame(self.root,bg="white")
+        self.select_week_frame = tk.Frame(self.root,bg="white")
+        self.camera_frame = tk.Frame(self.root,bg="white")
+        self.detection_frame = tk.Frame(self.root,bg="white")
+        self.attendance_frame = tk.Frame(self.root,bg="white")
+        self.branch_frame = tk.Frame(self.root,bg="white")
+
+        # Style the root
+        self.root.configure(bg="white")
+
+        # Create style templates
+        style = ttk.Style()
+        
+        # Configure the style to have a blue background
+        style.theme_use('clam')  # Using 'clam' theme for better custom styling
+        
+        # Create a custom button style with full blue background
+        style.configure('Blue.TButton', 
+                        background='#3498DB',   # Blue background
+                        foreground='white',     # White text
+                        font=('Arial', 10, 'bold'))
+        
+        # Map additional states for hover and active states
+        style.map('Blue.TButton',
+                  background=[('active', '#2980B9'), 
+                              ('pressed', '#21618C')],
+                  foreground=[('active', 'white'), 
+                              ('pressed', 'white')])
+
+        # Configure the OptionMenu style
+        style.configure('Custom.TMenubutton', 
+                background='white', 
+                foreground='#2C3E50',  # Dark text color
+                font=('Arial', 10),
+                borderwidth=1,
+                relief='solid')
+        
 
         # Initialize attendance manager and local data
         self.attendance_manager = None
@@ -61,18 +92,18 @@ class SignInApp:
         self.mode = ""
 
         # Title
-        tk.Label(self.mode_selection_frame, text="Select Operation Mode", font=("Arial", 16)).pack(pady=20)
+        tk.Label(self.mode_selection_frame,background="white", text="Select Operation Mode", font=("Arial", 16)).pack(pady=20)
 
         # Online Mode Button
-        online_btn = tk.Button(self.mode_selection_frame, text="Online Mode", 
+        online_btn = ttk.Button(self.mode_selection_frame,style="Blue.TButton", text="Online Mode", 
                                 command=self.setup_online_mode, 
-                                width=20, height=2)
+                                width=20)
         online_btn.pack(pady=10)
 
         # Offline Mode Button
-        offline_btn = tk.Button(self.mode_selection_frame, text="Offline Mode", 
+        offline_btn = ttk.Button(self.mode_selection_frame,style="Blue.TButton", text="Offline Mode", 
                                  command=self.setup_offline_mode, 
-                                 width=20, height=2)
+                                 width=20)
         offline_btn.pack(pady=10)
 
         self.mode_selection_frame.pack(expand=True)
@@ -183,17 +214,17 @@ class SignInApp:
         self.password_variable = ""
 
         # Setting up the email label and entry
-        tk.Label(self.sign_in_frame, text="Email:").pack()
+        tk.Label(self.sign_in_frame,background="white", text="Email:").pack()
         self.email_entry = tk.Entry(self.sign_in_frame, width=30)
         self.email_entry.pack(pady=10)
 
         # Setting up the password label and entry
-        tk.Label(self.sign_in_frame, text="Password:").pack()
+        tk.Label(self.sign_in_frame,background="white", text="Password:").pack()
         self.password_entry = tk.Entry(self.sign_in_frame, show="*", width=30)
         self.password_entry.pack(pady=10)
 
         # Submit button
-        submit_btn = tk.Button(self.sign_in_frame, text="Submit", command=self.on_submit_email_password)
+        submit_btn = ttk.Button(self.sign_in_frame, text="Submit",style="Blue.TButton", command=self.on_submit_email_password)
         submit_btn.pack(pady=10)
 
         self.sign_in_frame.pack()
@@ -210,7 +241,7 @@ class SignInApp:
         self.branch_type = ""
 
         # Welcome message
-        tk.Label(self.classes_frame, 
+        tk.Label(self.classes_frame,background="white",
                  text=f"Welcome, {self.lecturer_name_variable}\nChoose a Class:", 
                  font=("Arial", 14)).grid(row=0, column=0, columnspan=2, pady=10)
 
@@ -220,8 +251,9 @@ class SignInApp:
         # Create class buttons
         row = 1
         for class_name in self.lecturer_classes_variable:
-            class_btn = tk.Button(
+            class_btn = ttk.Button(
                 self.classes_frame, 
+                style="Blue.TButton",
                 text=class_name, 
                 width=button_width, 
                 command=lambda name=class_name: self.on_submit_chosen_class(name)
@@ -230,8 +262,9 @@ class SignInApp:
             row += 1
 
         # Back button (goes to mode selection in offline mode)
-        back_btn = tk.Button(
-            self.classes_frame, 
+        back_btn = ttk.Button(
+            self.classes_frame,
+            style="Blue.TButton", 
             text="Back", 
             command=self.show_mode_selection_frame
         )
@@ -259,7 +292,7 @@ class SignInApp:
         self.study_type = ""
     
         # Title label
-        tk.Label(self.branch_frame, text="Select Branch:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.branch_frame,background="white", text="Select Branch:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
     
         # Predefined branches
         available_branches = ["IT", "NE"]
@@ -269,6 +302,7 @@ class SignInApp:
         for i, branch in enumerate(available_branches):
             branch_btn = tk.Radiobutton(
                 self.branch_frame, 
+                background="white",
                 text=branch, 
                 variable=self.branch_variable, 
                 value=branch
@@ -276,15 +310,17 @@ class SignInApp:
             branch_btn.grid(row=1, column=i, padx=10)
     
         # Back and Submit buttons
-        back_btn = tk.Button(
-            self.branch_frame, 
+        back_btn = ttk.Button(
+            self.branch_frame,
+            style="Blue.TButton", 
             text="Back", 
             command=self.show_study_frame
         )
         back_btn.grid(row=2, column=0, pady=10)
         
-        submit_btn = tk.Button(
+        submit_btn = ttk.Button(
             self.branch_frame, 
+            style="Blue.TButton",
             text="Submit", 
             command=self.on_submit_branch
         )
@@ -297,6 +333,7 @@ class SignInApp:
         for i, branch in enumerate(available_branches):
             branch_btn = tk.Radiobutton(
                 self.branch_frame, 
+                background="white",
                 text=branch, 
                 variable=self.branch_variable, 
                 value=branch
@@ -304,15 +341,17 @@ class SignInApp:
             branch_btn.grid(row=1, column=i, padx=10)
 
         # Back and Submit buttons
-        back_btn = tk.Button(
+        back_btn = ttk.Button(
             self.branch_frame, 
+            style="Blue.TButton",
             text="Back", 
             command=self.show_study_frame
         )
         back_btn.grid(row=2, column=0, pady=10)
 
-        submit_btn = tk.Button(
-            self.branch_frame, 
+        submit_btn = ttk.Button(
+            self.branch_frame,
+            style="Blue.TButton", 
             text="Submit", 
             command=self.on_submit_branch
         )
@@ -329,19 +368,19 @@ class SignInApp:
         # Reset chosen variables
         self.study_type = ""
 
-        tk.Label(self.study_frame, text="Select Type of Study:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.study_frame,background="white", text="Select Type of Study:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
 
         # Radio buttons for Morning and Evening
         self.study_variable = tk.StringVar(value="Morning")
         study_options = ["Morning", "Evening"]
         for i, option in enumerate(study_options):
-            study_btn = tk.Radiobutton(self.study_frame, text=option, variable=self.study_variable, value=option)
+            study_btn = tk.Radiobutton(self.study_frame,background="white", text=option, variable=self.study_variable, value=option)
             study_btn.grid(row=1, column=i, padx=10)
 
         # Back and Submit buttons
-        back_btn = tk.Button(self.study_frame, text="Back", command=self.show_classes_frame)
+        back_btn = ttk.Button(self.study_frame,style="Blue.TButton" ,text="Back", command=self.show_classes_frame)
         back_btn.grid(row=2, column=0, pady=10)
-        submit_btn = tk.Button(self.study_frame, text="Submit", command=self.on_submit_study)
+        submit_btn = ttk.Button(self.study_frame,style="Blue.TButton", text="Submit", command=self.on_submit_study)
         submit_btn.grid(row=2, column=1, pady=10)
 
         self.study_frame.pack()
@@ -353,7 +392,7 @@ class SignInApp:
         self.clear_frames()
 
         # Title label
-        tk.Label(self.attendance_frame, text="Select Attendance Taking Method:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.attendance_frame,background="white", text="Select Attendance Taking Method:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
 
         # Attendance taking methods
         attendance_methods = ["Manual", "Automatic"]
@@ -363,6 +402,7 @@ class SignInApp:
         for i, method in enumerate(attendance_methods):
             method_btn = tk.Radiobutton(
                 self.attendance_frame, 
+                background="white",
                 text=method, 
                 variable=self.attendance_method_variable, 
                 value=method
@@ -370,15 +410,17 @@ class SignInApp:
             method_btn.grid(row=1, column=i, padx=10)
 
         # Back and Submit buttons
-        back_btn = tk.Button(
+        back_btn = ttk.Button(
             self.attendance_frame, 
+            style="Blue.TButton",
             text="Back", 
             command=self.show_branch_frame
         )
         back_btn.grid(row=2, column=0, pady=10)
         
-        submit_btn = tk.Button(
-            self.attendance_frame, 
+        submit_btn = ttk.Button(
+            self.attendance_frame,
+            style="Blue.TButton", 
             text="Submit", 
             command=self.on_submit_attendance_method
         )
@@ -393,19 +435,19 @@ class SignInApp:
         self.clear_frames()
 
         # Title label
-        tk.Label(self.attendance_frame, text="Select Week for Attendance:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.attendance_frame,background="white", text="Select Week for Attendance:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
 
         # Week selection drop down
         self.week_variable = tk.StringVar(value="1")
         week_options = [f"{i}" for i in range(1, 14)]  # Assuming 13 weeks
-        week_dropdown = tk.OptionMenu(self.attendance_frame, self.week_variable, *week_options)
+        week_dropdown = ttk.OptionMenu(self.attendance_frame, self.week_variable, *week_options,style="Custom.TMenubutton")
         week_dropdown.grid(row=1, column=0, columnspan=2, pady=10)
 
         # Back and Submit buttons
-        back_btn = tk.Button(self.attendance_frame, text="Back", command=self.show_attendance_taking_method_frame)
+        back_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Back", command=self.show_attendance_taking_method_frame)
         back_btn.grid(row=2, column=0, pady=10)
 
-        submit_btn = tk.Button(self.attendance_frame, text="Submit", command=self.on_submit_week)
+        submit_btn = ttk.Button(self.attendance_frame, text="Submit",style="Blue.TButton", command=self.on_submit_week)
         submit_btn.grid(row=2, column=1, pady=10)
 
         self.attendance_frame.pack()
@@ -418,7 +460,7 @@ class SignInApp:
         # Reset camera variable
         self.camera_index = None
 
-        tk.Label(self.camera_frame, text="Select Camera:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.camera_frame,background="white", text="Select Camera:", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
 
         # Get available cameras
         cameras = []
@@ -440,6 +482,7 @@ class SignInApp:
         for i, camera in enumerate(cameras):
             camera_btn = tk.Radiobutton(
                 self.camera_frame, 
+                background="white",
                 text=camera, 
                 variable=self.camera_variable, 
                 value=camera
@@ -447,15 +490,17 @@ class SignInApp:
             camera_btn.grid(row=1, column=i, padx=10)
 
         # Back and Submit buttons
-        back_btn = tk.Button(
-            self.camera_frame, 
+        back_btn = ttk.Button(
+            self.camera_frame,
+            style="Blue.TButton", 
             text="Back", 
             command=self.show_select_week_frame
         )
         back_btn.grid(row=2, column=0, pady=10)
 
-        submit_btn = tk.Button(
+        submit_btn = ttk.Button(
             self.camera_frame, 
+            style="Blue.TButton",
             text="Submit", 
             command=self.on_submit_camera
         )
@@ -478,29 +523,31 @@ class SignInApp:
      self.detected_students = set()
 
      # Create main container frame
-     container = tk.Frame(self.attendance_frame)
+     container = tk.Frame(self.attendance_frame,background="white")
      container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
 
      # Title with class and week information
      title_text = f"Attendance Log - {self.chosen_class_variable} (Week {self.week})"
      title_label = tk.Label(
          container, 
+         background="white",
          text=title_text,
          font=("Arial", 16, "bold")
      )
      title_label.pack(pady=(0, 10))
 
      # Create log frame with scrollbar
-     log_frame = tk.Frame(container)
+     log_frame = tk.Frame(container,background="white")
      log_frame.pack(fill=tk.BOTH, expand=True)
 
      # Add scrollbar
-     scrollbar = tk.Scrollbar(log_frame)
+     scrollbar = tk.Scrollbar(log_frame,background="white")
      scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
      # Create log display with increased size and better visibility
      self.log_text = tk.Text(
          log_frame,
+         background="white",
          height=10,
          width=60,
          font=("Arial", 12),
@@ -510,20 +557,22 @@ class SignInApp:
      scrollbar.config(command=self.log_text.yview)
 
      # Control buttons frame
-     button_frame = tk.Frame(container)
+     button_frame = tk.Frame(container,background="white")
      button_frame.pack(fill=tk.X, pady=10)
 
      # Control buttons
-     stop_btn = tk.Button(
+     stop_btn = ttk.Button(
          button_frame,
+         style="Blue.TButton",
          text="Stop and Save",
          command=self.stop_detection,
          width=15
      )
      stop_btn.pack(side=tk.LEFT, padx=5)
 
-     back_btn = tk.Button(
+     back_btn = ttk.Button(
          button_frame,
+         style="Blue.TButton",
          text="Cancel",
          command=self.cancel_detection,
          width=15
@@ -743,9 +792,9 @@ class SignInApp:
         self.clear_frames()
         
         # Week header (Weeks 1-13 as columns)
-        tk.Label(self.attendance_frame, text="Name", font=("Arial", 10, "bold")).grid(row=1, column=0, padx=5, pady=5)
+        tk.Label(self.attendance_frame,background="white", text="Name", font=("Arial", 10, "bold")).grid(row=1, column=0, padx=5, pady=5)
         for week in range(1, 14):  # Assuming 13 weeks
-            tk.Label(self.attendance_frame, text=f"{week}", font=("Arial", 10, "bold")).grid(row=1, column=week, padx=5, pady=5)
+            tk.Label(self.attendance_frame,background="white", text=f"{week}", font=("Arial", 10, "bold")).grid(row=1, column=week, padx=5, pady=5)
     
         # Determine which students to display for the current page
         start_index = self.current_page * self.students_per_page
@@ -755,7 +804,7 @@ class SignInApp:
         row_index = 2
         for student_id, student_info in current_students:
             student_name = list(student_info.keys())[0]
-            tk.Label(self.attendance_frame, text=student_name).grid(row=row_index, column=0, padx=5, pady=5, sticky="w")
+            tk.Label(self.attendance_frame,background="white", text=student_name).grid(row=row_index, column=0, padx=5, pady=5, sticky="w")
     
             # Initialize attendance dictionary for the student
             self.student_attendances[student_id] = {}
@@ -763,7 +812,7 @@ class SignInApp:
             # Create checkboxes for each week (present/absent for each week)
             for week in range(1, 14):
                 week_var = tk.BooleanVar()  # Track presence for each week
-                checkbox = tk.Checkbutton(self.attendance_frame, variable=week_var, onvalue=True, offvalue=False)
+                checkbox = tk.Checkbutton(self.attendance_frame,background="white", variable=week_var, onvalue=True, offvalue=False)
     
                 # Check the checkbox if the student was present in this week
                 checkbox.select() if student_info[student_name][week-1] else checkbox.deselect()
@@ -775,18 +824,18 @@ class SignInApp:
             row_index += 1
     
         # Back, Save, Next, and Previous buttons
-        back_btn = tk.Button(self.attendance_frame, text="Back", command=self.show_study_frame)
+        back_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Back", command=self.show_study_frame)
         back_btn.grid(row=row_index, column=5, columnspan=2, pady=10, sticky="ew")
         
-        save_btn = tk.Button(self.attendance_frame, text="Save", command=self.save_attendance)
+        save_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Save", command=self.save_attendance)
         save_btn.grid(row=row_index, column=7, columnspan=2, pady=10, sticky="ew")
     
         if self.current_page > 0:
-            prev_btn = tk.Button(self.attendance_frame, text="Previous", command=self.previous_page)
+            prev_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Previous", command=self.previous_page)
             prev_btn.grid(row=row_index, column=9, columnspan=2, pady=10, sticky="ew")
         
         if self.current_page < self.total_pages - 1:
-            next_btn = tk.Button(self.attendance_frame, text="Next", command=self.next_page)
+            next_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Next", command=self.next_page)
             next_btn.grid(row=row_index, column=11, columnspan=2, pady=10, sticky="ew")
     
         # Pack the frame

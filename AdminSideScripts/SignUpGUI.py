@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
-from tkinter import filedialog
+from tkinter import filedialog,ttk
 from PIL import Image, ImageTk
 import firebase_admin as fb
 import json
@@ -43,8 +43,28 @@ class SignUpApp:
         self.x = (screen_width / 2) - (window_width / 2)
         self.y = (screen_height / 2) - (window_height / 2)
         self.root.geometry(f"{window_width}x{window_height}+{int(self.x)}+{int(self.y)}")
-    
         
+        # Style the root
+        self.root.configure(bg="white")
+        # Create style templates
+        style = ttk.Style()
+        
+        # Configure the style to have a blue background
+        style.theme_use('clam')  # Using 'clam' theme for better custom styling
+        
+        # Create a custom button style with full blue background
+        style.configure('Blue.TButton', 
+                        background='#3498DB',   # Blue background
+                        foreground='white',     # White text
+                        font=('Arial', 10, 'bold'))
+        
+        # Map additional states for hover and active states
+        style.map('Blue.TButton',
+                  background=[('active', '#2980B9'), 
+                              ('pressed', '#21618C')],
+                  foreground=[('active', 'white'), 
+                              ('pressed', 'white')])
+
         
         # Show the role selection frame first
         self.show_role_selection_frame()
@@ -59,18 +79,18 @@ class SignUpApp:
         self.role_variable = tk.StringVar("")
         
         # Role selection frame
-        frame = tk.Frame(self.root)
+        frame = tk.Frame(self.root,bg="white")
         frame.pack(pady=20, padx=20)
 
-        tk.Label(frame, text="Select Role", font=("Arial", 14)).pack(pady=10)
+        tk.Label(frame, text="Select Role", font=("Arial", 14), background="white").pack(pady=10)
         
         # Radiobuttons for selecting role and set default value to Student
         self.role_variable.set("Student")
-        tk.Radiobutton(frame, text="Student", variable=self.role_variable, value="Student").pack(pady=5)
-        tk.Radiobutton(frame, text="Lecturer", variable=self.role_variable, value="Lecturer").pack(pady=5)
+        tk.Radiobutton(frame, text="Student", variable=self.role_variable, value="Student", background="white").pack(pady=5)
+        tk.Radiobutton(frame, text="Lecturer", variable=self.role_variable, value="Lecturer", background="white").pack(pady=5)
 
         # Submit button
-        tk.Button(frame, text="Submit", command=self.submit_role).pack(pady=10)
+        ttk.Button(frame, text="Submit", command=self.submit_role,style="Blue.TButton").pack(pady=10)
 
     def submit_role(self):
         '''Submit the selected role and show the corresponding sign-up frame.'''
@@ -91,7 +111,7 @@ class SignUpApp:
             widget.destroy()
 
         # Student sign-up frame
-        frame = tk.Frame(self.root)
+        frame = tk.Frame(self.root,bg="white")
         frame.pack(pady=20, padx=20)
 
 
@@ -105,54 +125,54 @@ class SignUpApp:
         self.stage_variable = tk.StringVar()
 
         # Title
-        tk.Label(frame, text="Student Sign-Up", font=("Arial", 14)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(frame,background="white", text="Student Sign-Up", font=("Arial", 14)).grid(row=0, column=0, columnspan=2, pady=10)
 
         # Email input
-        tk.Label(frame, text="Email:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(frame,background="white", text="Email:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         tk.Entry(frame, textvariable=self.email_variable).grid(row=1, column=1, sticky="w", padx=5, pady=5)
 
         # Password input
-        tk.Label(frame, text="Password:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(frame,background="white", text="Password:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
         tk.Entry(frame, show="*", textvariable=self.password_variable).grid(row=2, column=1, sticky="w", padx=5, pady=5)
 
         # Password input
-        tk.Label(frame, text="Confirm Password:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(frame,background="white", text="Confirm Password:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         tk.Entry(frame, show="*", textvariable=self.confirm_password_variable).grid(row=3, column=1, sticky="w", padx=5, pady=5)
 
         # Name input
-        tk.Label(frame, text="Name:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(frame,background="white", text="Name:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
         tk.Entry(frame, textvariable=self.name_variable).grid(row=4, column=1, sticky="w", padx=5, pady=5)
 
         # Branch input Radio buttons
         self.branch_variable.set("IT")
-        tk.Label(frame, text="Branch:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
-        branch_frame = tk.Frame(frame)
+        tk.Label(frame,background="white", text="Branch:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        branch_frame = tk.Frame(frame,background="white")
         branch_frame.grid(row=5, column=1, sticky="w", padx=5)
-        tk.Radiobutton(branch_frame, text="IT", variable=self.branch_variable, value="IT").pack(side="left", padx=5)
-        tk.Radiobutton(branch_frame, text="NE", variable=self.branch_variable, value="NE").pack(side="left", padx=5)
+        tk.Radiobutton(branch_frame,background="white", text="IT", variable=self.branch_variable, value="IT").pack(side="left", padx=5)
+        tk.Radiobutton(branch_frame,background="white", text="NE", variable=self.branch_variable, value="NE").pack(side="left", padx=5)
 
         # Study input Radio buttons
         self.study_variable.set("Morning")  
-        tk.Label(frame, text="Study:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
-        study_frame = tk.Frame(frame)
+        tk.Label(frame,background="white", text="Study:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
+        study_frame = tk.Frame(frame,background="white")
         study_frame.grid(row=6, column=1, sticky="w", padx=5)
-        tk.Radiobutton(study_frame, text="Morning", variable=self.study_variable, value="Morning").pack(side="left", padx=5)
-        tk.Radiobutton(study_frame, text="Evening", variable=self.study_variable, value="Evening").pack(side="left", padx=5)
+        tk.Radiobutton(study_frame,background="white", text="Morning", variable=self.study_variable, value="Morning").pack(side="left", padx=5)
+        tk.Radiobutton(study_frame,background="white", text="Evening", variable=self.study_variable, value="Evening").pack(side="left", padx=5)
 
         # Stage input Radio buttons
         self.stage_variable.set("1")
-        tk.Label(frame, text="Stage:").grid(row=7, column=0, sticky="e", padx=5, pady=5)
-        stage_frame = tk.Frame(frame)
+        tk.Label(frame,background="white", text="Stage:").grid(row=7, column=0, sticky="e", padx=5, pady=5)
+        stage_frame = tk.Frame(frame,background="white")
         stage_frame.grid(row=7, column=1, sticky="w", padx=5)
         for stage in range(1, 5):
-            tk.Radiobutton(stage_frame, text=str(stage), variable=self.stage_variable, value=str(stage)).pack(side="left", padx=5)
+            tk.Radiobutton(stage_frame,background="white", text=str(stage), variable=self.stage_variable, value=str(stage)).pack(side="left", padx=5)
 
 
         # Submit and Back buttons
-        button_frame = tk.Frame(frame)
+        button_frame = tk.Frame(frame,background="white")
         button_frame.grid(row=8, column=0, columnspan=2, pady=10)
-        tk.Button(button_frame, text="Back", command=self.show_role_selection_frame).pack(side="left", padx=10)
-        tk.Button(button_frame, text="Submit", command=self.submit_student_info).pack(side="left", padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Back", command=self.show_role_selection_frame).pack(side="left", padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Submit", command=self.submit_student_info).pack(side="left", padx=10)
 
     def show_student_image_upload_frame(self):
         '''Display the student image upload frame for the student to upload an image.'''
@@ -161,25 +181,25 @@ class SignUpApp:
             widget.destroy()
         
         # Student image upload frame
-        frame = tk.Frame(self.root)
+        frame = tk.Frame(self.root,bg="white")
         frame.pack(pady=20, padx=20)
 
         # Title
-        tk.Label(frame, text=f"Upload Image for {self.student_data['Name']}", font=("Arial", 14)).pack(pady=10)
+        tk.Label(frame,background="white", text=f"Upload Image for {self.student_data['Name']}", font=("Arial", 14)).pack(pady=10)
 
         # Image Upload Button and Preview
-        image_button = tk.Button(frame, text="Select Image", command=self.upload_image)
+        image_button = ttk.Button(frame,style="Blue.TButton", text="Select Image", command=self.upload_image)
         image_button.pack(pady=5)
 
         # Placeholder for Image Preview
-        self.image_preview_label = tk.Label(frame)
+        self.image_preview_label = tk.Label(frame,background="white")
         self.image_preview_label.pack(pady=10)
 
         # Submit and Back buttons
-        button_frame = tk.Frame(frame)
+        button_frame = tk.Frame(frame,background="white")
         button_frame.pack(pady=10)
-        tk.Button(button_frame, text="Back", command=self.show_student_signup_frame).pack(side="left", padx=10)
-        tk.Button(button_frame, text="Submit", command=self.submit_student).pack(side="left", padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Back", command=self.show_student_signup_frame).pack(side="left", padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Submit", command=self.submit_student).pack(side="left", padx=10)
 
     def show_lecturer_signup_frame(self):
         '''Display the lecturer sign-up frame for the lecturer to select stages'''
@@ -202,35 +222,35 @@ class SignUpApp:
         #self.name_variable.set("John Doe")
 
         # Lecturer sign-up frame
-        frame = tk.Frame(self.root)
+        frame = tk.Frame(self.root,bg="white")
         frame.pack(pady=30, padx=30)
 
-        tk.Label(frame, text="Lecturer Sign-Up", font=("Arial", 14)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(frame,background="white", text="Lecturer Sign-Up", font=("Arial", 14)).grid(row=0, column=0, columnspan=2, pady=10)
         
         # Email input
-        tk.Label(frame, text="Email:").grid(row=1, column=0, sticky="w")
+        tk.Label(frame,background="white", text="Email:").grid(row=1, column=0, sticky="w")
         tk.Entry(frame, textvariable=self.email_variable).grid(row=1, column=1, sticky="w")
 
         # Password input
-        tk.Label(frame, text="Password:").grid(row=3, column=0, sticky="w")
+        tk.Label(frame,background="white", text="Password:").grid(row=3, column=0, sticky="w")
         tk.Entry(frame, show="*", textvariable=self.password_variable).grid(row=3, column=1, sticky="w")
 
         # Password input
-        tk.Label(frame, text="Confirm Password:").grid(row=4, column=0, sticky="w")
+        tk.Label(frame,background="white", text="Confirm Password:").grid(row=4, column=0, sticky="w")
         tk.Entry(frame, show="*", textvariable=self.confirm_password_variable).grid(row=4, column=1, sticky="w")
 
         # Name input
-        tk.Label(frame, text="Name:").grid(row=5, column=0, sticky="w")
+        tk.Label(frame,background="white", text="Name:").grid(row=5, column=0, sticky="w")
         tk.Entry(frame, textvariable=self.name_variable).grid(row=5, column=1, sticky="w")
         
         # Stages selection
-        tk.Label(frame, text="Stages:").grid(row=6, column=0, sticky="w")
-        stages_frame = tk.Frame(frame)
+        tk.Label(frame,background="white", text="Stages:").grid(row=6, column=0, sticky="w")
+        stages_frame = tk.Frame(frame,background="white")
         stages_frame.grid(row=6, column=1, sticky="w", padx=5)
         for stage in range(1, 5):
             var = tk.StringVar(value="")  # Initialize empty to deselect by default
             self.lecturer_stages_variables.append([str(stage), var])
-            tk.Checkbutton(stages_frame, text=str(stage), variable=var, onvalue=str(stage), offvalue="").pack(side="left")
+            tk.Checkbutton(stages_frame,background="white", text=str(stage), variable=var, onvalue=str(stage), offvalue="").pack(side="left")
 
         ## Branches selection
         #tk.Label(frame, text="Branches:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
@@ -242,10 +262,10 @@ class SignUpApp:
         #    tk.Checkbutton(branches_frame, text=branch, variable=var, onvalue=branch, offvalue="").pack(side="left", padx=5)
 
         # Submit and Back buttons
-        button_frame = tk.Frame(frame)
+        button_frame = tk.Frame(frame,background="white")
         button_frame.grid(row=7, column=0, columnspan=2, pady=10)
-        tk.Button(button_frame, text="Back", command=self.show_role_selection_frame).pack(side="left", padx=10)
-        tk.Button(button_frame, text="Submit", command=self.submit_lecturer_stages).pack(side="left", padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Back", command=self.show_role_selection_frame).pack(side="left", padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Submit", command=self.submit_lecturer_stages).pack(side="left", padx=10)
     
     def show_class_selection_frame(self):
         '''Display the class selection frame for the lecturer to select classes.'''
@@ -257,18 +277,18 @@ class SignUpApp:
         self.selected_classes = []
     
         # Canvas
-        canvas = tk.Canvas(self.root, borderwidth=0)
+        canvas = tk.Canvas(self.root, borderwidth=0, background="white")
         canvas.pack(side="top", fill="both", expand=True)
     
         # Create a scrollbar that controls the canvas
-        scrollbar = tk.Scrollbar(canvas, orient="vertical", command=canvas.yview)
+        scrollbar = tk.Scrollbar(canvas,background="white", orient="vertical", command=canvas.yview)
         scrollbar.pack(side="right", fill="y")
     
         # Configure the canvas to work with the scrollbar
         canvas.configure(yscrollcommand=scrollbar.set)
     
         # Class selection frame inside the canvas
-        frame = tk.Frame(canvas)
+        frame = tk.Frame(canvas,background="white")
     
         # Place the frame in the canvas and center it
         canvas.create_window((canvas.winfo_width() / 2, 0), window=frame, anchor="n")
@@ -285,7 +305,7 @@ class SignUpApp:
     
         for stage, classes in sorted(self.classes_by_stage_dict.items()):
             # Add stage title
-            stage_label = tk.Label(frame, text=f"Stage {stage}", font=("Arial", 10, "bold"))
+            stage_label = tk.Label(frame,background="white", text=f"Stage {stage}", font=("Arial", 10, "bold"))
             stage_label.grid(row=count, column=0, sticky="w", pady=(10, 5))
             count += 1
     
@@ -305,7 +325,7 @@ class SignUpApp:
                         self.selected_classes.remove(class_name)
     
                 # Create a checkbox and bind it to toggle_selection
-                checkbox = tk.Checkbutton(frame, text=class_name, variable=var, command=toggle_selection)
+                checkbox = tk.Checkbutton(frame,background="white", text=class_name, variable=var, command=toggle_selection)
                 checkbox.grid(row=row, column=col, sticky="w", padx=15, pady=2)
     
                 # Move to the next column
@@ -320,12 +340,12 @@ class SignUpApp:
             count = row + 1
     
         # Submit and Back buttons
-        button_frame = tk.Frame(frame)
+        button_frame = tk.Frame(frame,background="white")
         button_frame.grid(row=count, column=1, columnspan=2, pady=10)
     
         # Center the buttons using grid
-        tk.Button(button_frame, text="Back", command=self.show_lecturer_signup_frame).grid(row=0, column=0, padx=10)
-        tk.Button(button_frame, text="Submit", command=self.submit_lecturer).grid(row=0, column=1, padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Back", command=self.show_lecturer_signup_frame).grid(row=0, column=0, padx=10)
+        ttk.Button(button_frame,style="Blue.TButton", text="Submit", command=self.submit_lecturer).grid(row=0, column=1, padx=10)
     
         # Configure the button frame to center its contents
         button_frame.grid_columnconfigure(0, weight=1)  # Allow first column to expand
