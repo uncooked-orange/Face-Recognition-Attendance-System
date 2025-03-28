@@ -65,6 +65,11 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
   python SignUpGUI.py
   ```
 
+  And if you wish to delete a user run:
+  ```bash
+  python DeleteUserGUI.py
+  ```
+
   ### For the Lecturer SIDE:
 
   Sign in as a lecturer and control student attendance:
