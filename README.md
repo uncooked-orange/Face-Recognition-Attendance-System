@@ -1,4 +1,3 @@
-"""
 # Attendance System
 
 A Python-based Attendance System with a graphical user interface (GUI) built using Tkinter. The system integrates with Firebase for online functionality and supports offline capabilities. The system allows lecturers to take attendance manually or automatically using a face detection system.
@@ -27,48 +26,51 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
    ```bash
    git clone https://github.com/yourusername/attendance-system.git
    cd attendance-system
+   ```
 
 2. **Install Python and Requirements:**
-   - Make sure you have python installed with at least the `^3.8.9` version
+   - Make sure you have python installed with the `˅3.9` version as I'm not sure it would work on newer versions
    - Run the command
+   - Install CMAKE for the dlib library
+   - Run the following command:
    ```bash
    pip install -r requirements.txt
    ```
-   - Make Sure to install CMAKE for the dlib to work aswell
 
 3. **Set up Firebase:**
    - Create a Firebase project on the [Firebase Console](https://console.firebase.google.com/).
    - Enable Firebase Authentication and Firebase Realtime Database.
-   - Download the `firebase-adminsdk` credentials JSON file and add it to the credentials folder As `AdminCredentials.json`.
-   - Add a new web app to the firebase project and copy the credentials and add it to the credentials folder As `UserCredentials.json`.
+   - Download the `firebase-adminsdk` credentials JSON file and add it to the credentials folder as `AdminCredentials.json`.
+   - Add a new web app to the Firebase project and copy the credentials and add it to the credentials folder as `UserCredentials.json`.
   
 4. **Acquire the face detection related models:**
-   - Download the yunet model `face_detection_yunet_2023mar.onnx` and add it to a `Models` folder
-   - Add the dlib `Shape_predictor_68_face_landmarks.dat` and add it to the `Models` folder
+   - Create a `Models` folder in your main directory
+   - Download the YuNet model `face_detection_yunet_2023mar.onnx` and add it to the `Models` folder
+   - Download the dlib `Shape_predictor_68_face_landmarks.dat` and add it to the `Models` folder
   
-4. **Separate into the ADMIN side and the LECTURER side**
-   - When actually deploying, make sure the `LecturerSideScripts, LecturerUtilites, GeneralUtlitiles` and only the `UserCredentials` of the `Credentials` folder         and all the models in the `Models` folder are on the lecturer side machine
-   - Put the `AdminSideScripts, AdminUtilities, GeneralUtilites` and Both the `UserCredentials, AdminCredentials` and all the models
+5. **Separate into the ADMIN side and the LECTURER side**
+   - When actually deploying, make sure the `LecturerSideScripts, LecturerUtilities, GeneralUtilities` and only the `UserCredentials` of the `Credentials` folder and all the models in the `Models` folder are on the lecturer side machine
+   - Put the `AdminSideScripts, AdminUtilities, GeneralUtilities` and both the `UserCredentials, AdminCredentials` and all the models
      
-5. **Run the application:**
+6. **Run the application:**
 
-  ### For the Admin SIDE:-
+  ### For the Admin SIDE:
    ```bash
    python AddClassGUI.py
    ```
 
-  after adding classes add the students and lecturers through:
+  After adding classes, add the students and lecturers through:
 
   ```bash
   python SignUpGUI.py
   ```
 
-  ### For the Lecturers SIDE:-
+  ### For the Lecturer SIDE:
 
-  sign in as a lecturer and control the student attendance
+  Sign in as a lecturer and control student attendance:
   
   ```bash
-  python SignInGUI.py
+  python LecturerGUI.py
   ```
 
 ## Features Walkthrough
@@ -88,3 +90,10 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
 
 ### Offline Mode
 - **Local Storage:** The system can store attendance data locally when offline and sync it with Firebase once internet access is available.
+
+## Credits
+This project was inspired by and takes some code from the [Intelligent Face Recognition Attendance System](https://github.com/turhancan97/Intelligent-Face-Recognition-Attendance-System) by turhancan97, which is licensed under the MIT License.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
