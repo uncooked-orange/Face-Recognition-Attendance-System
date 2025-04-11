@@ -36,7 +36,7 @@ class SignUpApp:
         self.root.title("Sign Up")
 
         # Set window size and center it
-        window_width = 500
+        window_width = 600
         window_height = 400
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -175,31 +175,69 @@ class SignUpApp:
         ttk.Button(button_frame,style="Blue.TButton", text="Submit", command=self.submit_student_info).pack(side="left", padx=10)
 
     def show_student_image_upload_frame(self):
-        '''Display the student image upload frame for the student to upload an image.'''
+        '''Display the student image upload frame for the student to upload multiple images.'''
         # Clear existing frames
         for widget in self.root.winfo_children():
             widget.destroy()
-        
+
+        # Initialize embeddings list if not exists
+        if not hasattr(self, "embeddings_list"):
+            self.embeddings_list = []
+            self.uploaded_images_count = 0
+
         # Student image upload frame
-        frame = tk.Frame(self.root,bg="white")
-        frame.pack(pady=20, padx=20)
+        frame = tk.Frame(self.root, bg="white")
+        frame.pack(pady=20, padx=20, fill="both", expand=True)
 
         # Title
-        tk.Label(frame,background="white", text=f"Upload Image for {self.student_data['Name']}", font=("Arial", 14)).pack(pady=10)
+        tk.Label(frame, background="white", text=f"Upload Images for {self.student_data['Name']}", 
+                 font=("Arial", 14)).pack(pady=10)
+
+        # Status label
+        status_text = f"Uploaded {self.uploaded_images_count}/5 images"
+        self.status_label = tk.Label(frame, background="white", text=status_text, font=("Arial", 12))
+        self.status_label.pack(pady=5)
 
         # Image Upload Button and Preview
-        image_button = ttk.Button(frame,style="Blue.TButton", text="Select Image", command=self.upload_image)
+        image_button = ttk.Button(frame, style="Blue.TButton", text="Select Image", 
+                                 command=self.upload_and_process_image)
         image_button.pack(pady=5)
 
         # Placeholder for Image Preview
-        self.image_preview_label = tk.Label(frame,background="white")
+        self.image_preview_label = tk.Label(frame, background="white")
         self.image_preview_label.pack(pady=10)
 
+        # Image thumbnails frame
+        thumbnails_frame = tk.Frame(frame, background="white")
+        thumbnails_frame.pack(pady=10, fill="x")
+
+        # Create thumbnail labels for each image
+        self.thumbnail_labels = []
+        for i in range(5):
+            # Create a frame with a border to represent an image slot
+            slot_frame = tk.Frame(thumbnails_frame, bg="lightgray", width=100, height=100, bd=2, relief="groove")
+            slot_frame.pack(side="left", padx=5)
+            slot_frame.pack_propagate(False)  # Prevent the frame from resizing
+
+            # Add label inside the frame
+            thumbnail_label = tk.Label(slot_frame, bg="lightgray", text=f"Image {i+1}")
+            thumbnail_label.pack(expand=True)
+            self.thumbnail_labels.append(thumbnail_label)
+
         # Submit and Back buttons
-        button_frame = tk.Frame(frame,background="white")
-        button_frame.pack(pady=10)
-        ttk.Button(button_frame,style="Blue.TButton", text="Back", command=self.show_student_signup_frame).pack(side="left", padx=10)
-        ttk.Button(button_frame,style="Blue.TButton", text="Submit", command=self.submit_student).pack(side="left", padx=10)
+        button_frame = tk.Frame(frame, background="white")
+        button_frame.pack(pady=20)
+        ttk.Button(button_frame, style="Blue.TButton", text="Back", 
+                  command=self.show_student_signup_frame).pack(side="left", padx=10)
+
+        # Submit button - enabled only when 5 images are uploaded
+        self.submit_button = ttk.Button(button_frame, style="Blue.TButton", text="Submit", 
+                                       command=self.submit_student, state="disabled")
+        self.submit_button.pack(side="left", padx=10)
+
+        # Enable submit button if already have 5 images
+        if self.uploaded_images_count >= 5:
+            self.submit_button.config(state="normal")
 
     def show_lecturer_signup_frame(self):
         '''Display the lecturer sign-up frame for the lecturer to select stages'''
@@ -414,63 +452,125 @@ class SignUpApp:
             messagebox.showerror("Error", f"Invalid student info: {str(e)}")
             self.show_student_signup_frame()
 
+    def upload_and_process_image(self):
+        '''Upload an image and process it to extract facial embedding'''
+        if self.uploaded_images_count >= 5:
+            messagebox.showinfo("Info", "You've already uploaded 5 images. You can submit now.")
+            return
+
+        # Open file dialog to select image
+        file_path = filedialog.askopenfilename(
+            title="Select Image",
+            filetypes=(("Image files", "*.jpg;*.jpeg;*.png"), ("All files", "*.*"))
+        )
+
+        if not file_path:
+            return  # User cancelled
+
+        self.face_image_path = file_path
+
+        # Process the image to extract embedding
+        try:
+            # Load the face recognition system
+            face_recognition_system = FaceRecognitionSystem()
+
+            # Load the image
+            image = cv2.imread(self.face_image_path)
+
+            # Resize image for display
+            display_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            display_image = Image.fromarray(display_image)
+            display_image = display_image.resize((200, 200), Image.LANCZOS)
+            display_photo = ImageTk.PhotoImage(display_image)
+
+            # Update preview
+            self.image_preview_label.config(image=display_photo)
+            self.image_preview_label.image = display_photo
+
+            # Check if image contains a face
+            faces = face_recognition_system.detect_faces(image)
+            if faces.size == 0 or len(faces) == 0:
+                messagebox.showwarning("Warning", "No face detected in the image.")
+                return
+
+            # Check if there is more than one face in the image
+            if len(faces) > 1:
+                messagebox.showwarning("Warning", "Multiple faces detected in the image.")
+                return
+
+            # Align the face
+            aligned_face = face_recognition_system.align_face(image, faces[0])
+
+            # Check face quality
+            if not face_recognition_system.assess_face_quality(aligned_face):
+                messagebox.showwarning("Warning", "The image quality is too low. Please upload a clearer image with good lighting.")
+                return
+
+            # Extract features
+            embedding = face_recognition_system.extract_features(aligned_face)
+
+            # Add the embedding to our list
+            self.embeddings_list.append(embedding)
+            self.uploaded_images_count += 1
+
+            # Update the status label
+            self.status_label.config(text=f"Uploaded {self.uploaded_images_count}/5 images")
+
+            # Update the thumbnail
+            thumbnail_img = cv2.resize(aligned_face, (90, 90))
+            thumbnail_img = cv2.cvtColor(thumbnail_img, cv2.COLOR_BGR2RGB)
+            thumbnail_img = Image.fromarray(thumbnail_img)
+            thumbnail_photo = ImageTk.PhotoImage(thumbnail_img)
+
+            # Update the corresponding thumbnail label
+            current_idx = self.uploaded_images_count - 1
+            self.thumbnail_labels[current_idx].config(image=thumbnail_photo, text="")
+            self.thumbnail_labels[current_idx].image = thumbnail_photo
+
+            # Enable submit button if we have 5 images
+            if self.uploaded_images_count >= 2:
+                self.submit_button.config(state="normal")
+                messagebox.showinfo("Success", "All 5 images uploaded successfully. You can now submit.")
+
+        except Exception as e:
+            print(f"Error processing image: {str(e)}")
+            messagebox.showerror("Error", f"Failed to process image: {str(e)}")
+
     
     def submit_student(self):
-        '''Submit the student data and image to the database.'''
-        # Check if image is uploaded
-        if not hasattr(self, "face_image_path"):
-            messagebox.showwarning("Warning", "Please upload an image.")
+        '''Submit the student data and all embeddings to the database.'''
+        # Check if we have 5 images
+        if not hasattr(self, "embeddings_list") or len(self.embeddings_list) < 2:
+            messagebox.showwarning("Warning", "Please upload at least 2 images before submitting.")
+            self.uploaded_images_count = 0
             self.show_student_image_upload_frame()
             return
-        
-        # Load the face recognition system
-        face_recognition_system = FaceRecognitionSystem()
 
-        # Load the image
-        self.student_image = cv2.imread(self.face_image_path)
-
-        # Check if image contains a face
-        face = face_recognition_system.detect_faces(self.student_image)
-        if not face.any():
-            messagebox.showwarning("Warning", "No face detected in the image.")
-            self.show_student_image_upload_frame()
-            return
-        
-        # Check if there is more than one face in the image
-        if len(face) > 1:
-            messagebox.showwarning("Warning", "Multiple faces detected in the image.")
-            self.show_student_image_upload_frame()
-            return
-        
-        # Align the face
-        aligned_face = face_recognition_system.align_face(self.student_image, face[0])
-
-        # Extract features
-        embedding = face_recognition_system.extract_features(aligned_face)
-
-        # Add the embedding to the student data
-        self.student_data["embedding"] = embedding
+        # Add all embeddings to student data
+        self.student_data["embeddings"] = self.embeddings_list
 
         # Sign up student
         try:
-            sign_up_student(self.student_data["email"], 
-                            self.student_data["password"], 
-                            self.student_data["Name"], 
-                            self.student_data["study"], 
-                            self.student_data["stage"], 
-                            self.student_data["branch"], 
-                            self.student_data["embedding"],
-                            database, 
-                            Auth)
-            messagebox.showinfo("Success", "Student data submitted.")
+            sign_up_student(self.student_data["email"],
+                          self.student_data["password"],
+                          self.student_data["Name"],
+                          self.student_data["study"],
+                          self.student_data["stage"],
+                          self.student_data["branch"],
+                          self.student_data["embeddings"],  # Now sending the list of embeddings
+                          database,
+                          Auth)
+            messagebox.showinfo("Success", "Student data submitted with 5 face images.")
+
+            # Reset for next student
+            self.embeddings_list = []
+            self.uploaded_images_count = 0
+
             self.show_role_selection_frame()
         except Exception as e:
             print(f"Failed to sign up student: {str(e)}")
             messagebox.showerror("Error", "Failed to sign up student.")
-            self.show_student_signup_frame()
             return
-
-        self.show_role_selection_frame()
 
 
     def submit_lecturer_stages(self):
