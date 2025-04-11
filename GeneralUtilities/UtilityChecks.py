@@ -61,13 +61,7 @@ def check_semester_valid(semester):
 
 # check if name is valid
 def check_name_valid(name):
-    pattern = r'^[A-Za-z\s]+$'
-    try:
-        if not re.match(pattern, name):
-            raise ValueError("Name is invalid")
-        return True
-    except ValueError:
-        return False
+    return True
 
 # check if email is valid
 def check_email_valid(email):

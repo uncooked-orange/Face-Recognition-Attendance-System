@@ -221,17 +221,17 @@ class FaceRecognitionSystem:
         """
         self.face_database[ID] = embedding
 
-    def match_face(self, embedding: List[float], threshold: float = 0.70) -> Optional[str]:
+    def match_face(self, embedding: List[float], threshold: float = 0.50) -> Optional[str]:
         """
         Match a face embedding against the database
-        
+
         Parameters
         ----------
         embedding : List[float]
             Face embedding to match
         threshold : float, optional
-            Distance threshold for a match, by default 0.50
-        
+            Distance threshold for a match, by default 0.90
+
         Returns
         -------
         Optional[str]
@@ -243,23 +243,46 @@ class FaceRecognitionSystem:
         # Compare against database
         for ID, db_embedding in self.face_database.items():
             distance = cosine(embedding, db_embedding)
-            
+
             if distance < min_distance:
                 min_distance = distance
                 match = ID
 
-        # Return match if below threshold
-        return match if min_distance < threshold else None
+        # Only return match if it's a strong match (below threshold)
+        if min_distance < threshold:
+            print(f"Match found: {match} with distance: {min_distance}")
+            return match
+        return None
+    
+    def get_min_distance(self, embedding: List[float], match_id: str) -> float:
+        """
+        Get the minimum distance for a particular match
+
+        Parameters
+        ----------
+        embedding : List[float]
+            Face embedding
+        match_id : str
+            ID of the match to get distance for
+
+        Returns
+        -------
+        float
+            Distance for the match
+        """
+        if match_id in self.face_database:
+            return cosine(embedding, self.face_database[match_id])
+        return float('inf')
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, List[str]]:
         """
         Process a full frame for face detection and recognition
-        
+
         Parameters
         ----------
         frame : numpy.ndarray
             Input video frame
-        
+
         Returns
         -------
         Tuple[numpy.ndarray, List[str]]
@@ -267,29 +290,43 @@ class FaceRecognitionSystem:
         """
         # Detect faces
         faces = self.detect_faces(frame)
-        
+
         # List to store recognized names
         recognized_names = []
-        
-        # Process each detected face
+
+        # Count actual people in the frame - start with minimum confidence matches
+        high_confidence_matches = []
+        face_embeddings = []
+
+        # First pass: extract all face embeddings and store them
         for face in faces:
             try:
                 # Align the face
                 aligned_face = self.align_face(frame, face)
-                
+
                 # Extract features
                 embedding = self.extract_features(aligned_face)
-                
-                # Match face
-                match = self.match_face(embedding)
-                
-                if match:
-                    recognized_names.append(match)
-                    
-                    # Draw bounding box and name
-                    x, y, w, h = face
-                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                face_embeddings.append((face, embedding))
             except Exception as e:
                 print(f"Error processing face: {e}")
-        
+
+        # Second pass: match only the most confident faces based on the number of expected people
+        # Start with high threshold
+        threshold = 0.50
+
+        # Try to find high confidence matches first
+        for face, embedding in face_embeddings:
+            match = self.match_face(embedding, threshold)
+            if match and match not in high_confidence_matches:
+                high_confidence_matches.append(match)
+                x, y, w, h = face
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+                # Add text with confidence level
+                confidence = 1.0 - self.get_min_distance(embedding, match)
+                label = f"{match} ({confidence:.2f})"
+                cv2.putText(frame, label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+                recognized_names.append(match)
+
         return frame, recognized_names

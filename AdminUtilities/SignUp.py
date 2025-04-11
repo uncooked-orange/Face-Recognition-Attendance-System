@@ -57,7 +57,6 @@ def sign_up_lecturer(Email, Pass, classes, Name, Database, Auth):
 
         # add custom claims
         Auth.set_custom_user_claims(user.uid, {'role': 'Lecturer'})
-        print("Successfully created new user: {0}".format(user.uid))
 
         # Turn classes into a dictionary for easier access
         classes = {class_name: True for class_name in classes}
@@ -115,7 +114,6 @@ def sign_up_student(Email, Pass, Name, Study, Stage, branch, embedding, Database
             'role': 'Student', 
             })
         
-        print("Successfully created new user: {0}".format(user.uid))
 
         # add Student to database
         Database.reference('/').child('Students').child(user.uid).set({

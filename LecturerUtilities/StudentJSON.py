@@ -49,7 +49,7 @@ class AttendanceManager:
                     student_id: {
                         name: student_name,
                         attendance: student_attendance,
-                        embedding: student_embedding
+                        embedding: [0:(embedding 0), 1:(embedding 1), ...],
                         classes : {
                             class_name: attendance
                         }

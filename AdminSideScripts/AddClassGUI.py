@@ -55,6 +55,7 @@ class AddClassApp:
         self.root = root
         self.root.title("Add Class")
         self.database = database_ref
+        self.root.iconbitmap(r"C:\Users\hp\OneDrive\Desktop\Projects\Python_projects\GUI\hasan.ico")
 
         if not self.database:
             messagebox.showerror("Error", "Failed to initialize Firebase database")

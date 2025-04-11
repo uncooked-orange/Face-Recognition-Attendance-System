@@ -470,7 +470,6 @@ class SignUpApp:
             self.show_student_signup_frame()
             return
 
-        messagebox.showinfo("Success", f"Student data: {self.student_data}")
         self.show_role_selection_frame()
 
 

@@ -9,6 +9,7 @@ import threading
 import pyrebase as pb
 import sys
 import os
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -509,150 +510,128 @@ class SignInApp:
         self.camera_frame.pack()
 
     def show_detection_frame(self):
-     """Shows frame with student detection log while camera feeds runs in separate window."""
-     self.clear_frames()
-
-     # Initialize face recognition system
-     self.face_system = FaceRecognitionSystem()
-     self.face_system.load_students_from_json(
-         f"{self.json_save_path}/students.json",
-         self.chosen_class_variable
-     )
-
-     # Initialize detected students set
-     self.detected_students = set()
-
-     # Create main container frame
-     container = tk.Frame(self.attendance_frame,background="white")
-     container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-
-     # Title with class and week information
-     title_text = f"Attendance Log - {self.chosen_class_variable} (Week {self.week})"
-     title_label = tk.Label(
-         container, 
-         background="white",
-         text=title_text,
-         font=("Arial", 16, "bold")
-     )
-     title_label.pack(pady=(0, 10))
-
-     # Create log frame with scrollbar
-     log_frame = tk.Frame(container,background="white")
-     log_frame.pack(fill=tk.BOTH, expand=True)
-
-     # Add scrollbar
-     scrollbar = tk.Scrollbar(log_frame,background="white")
-     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-     # Create log display with increased size and better visibility
-     self.log_text = tk.Text(
-         log_frame,
-         background="white",
-         height=10,
-         width=60,
-         font=("Arial", 12),
-         yscrollcommand=scrollbar.set,
-     )
-     self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-     scrollbar.config(command=self.log_text.yview)
-
-     # Control buttons frame
-     button_frame = tk.Frame(container,background="white")
-     button_frame.pack(fill=tk.X, pady=10)
-
-     # Control buttons
-     stop_btn = ttk.Button(
-         button_frame,
-         style="Blue.TButton",
-         text="Stop and Save",
-         command=self.stop_detection,
-         width=15
-     )
-     stop_btn.pack(side=tk.LEFT, padx=5)
-
-     back_btn = ttk.Button(
-         button_frame,
-         style="Blue.TButton",
-         text="Cancel",
-         command=self.cancel_detection,
-         width=15
-     )
-     back_btn.pack(side=tk.LEFT, padx=5)
-
-     self.attendance_frame.pack(fill=tk.BOTH, expand=True)
-
-     # Start camera feed and detection in separate thread
-     self.detection_active = True
-     self.camera_thread = threading.Thread(target=self.run_detection)
-     self.camera_thread.start()
+        """Shows frame with student detection log while camera feeds runs in separate window."""
+        self.clear_frames()
+    
+        # Initialize face recognition system
+        self.face_system = FaceRecognitionSystem()
+        self.face_system.load_students_from_json(
+            f"{self.json_save_path}/students.json",
+            self.chosen_class_variable
+        )
+    
+        # Initialize detected students set
+        self.detected_students = set()
+    
+        # Create main container frame
+        container = tk.Frame(self.attendance_frame,background="white")
+        container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+    
+        # Title with class and week information
+        title_text = f"Attendance Log - {self.chosen_class_variable} (Week {self.week})"
+        title_label = tk.Label(
+            container, 
+            background="white",
+            text=title_text,
+            font=("Arial", 16, "bold")
+        )
+        title_label.pack(pady=(0, 10))
+    
+        # Create log frame with scrollbar
+        log_frame = tk.Frame(container,background="white")
+        log_frame.pack(fill=tk.BOTH, expand=True)
+    
+        # Add scrollbar
+        scrollbar = tk.Scrollbar(log_frame,background="white")
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    
+        # Create log display with increased size and better visibility
+        self.log_text = tk.Text(
+            log_frame,
+            background="white",
+            height=10,
+            width=60,
+            font=("Arial", 12),
+            yscrollcommand=scrollbar.set,
+        )
+        self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.log_text.yview)
+    
+        # Control buttons frame
+        button_frame = tk.Frame(container,background="white")
+        button_frame.pack(fill=tk.X, pady=10)
+    
+        # Control buttons
+        stop_btn = ttk.Button(
+            button_frame,
+            style="Blue.TButton",
+            text="Stop and Save",
+            command=self.stop_detection,
+            width=15
+        )
+        stop_btn.pack(side=tk.LEFT, padx=5)
+    
+        back_btn = ttk.Button(
+            button_frame,
+            style="Blue.TButton",
+            text="Cancel",
+            command=self.cancel_detection,
+            width=15
+        )
+        back_btn.pack(side=tk.LEFT, padx=5)
+    
+        self.attendance_frame.pack(fill=tk.BOTH, expand=True)
+    
+        # Start camera feed and detection in separate thread
+        self.detection_active = True
+        self.camera_thread = threading.Thread(target=self.run_detection)
+        self.camera_thread.start()
 
     def run_detection(self):
-        """Runs camera feed and face detection in separate window."""
         cap = cv2.VideoCapture(self.camera_index)
 
-        # Frame counter for consecutive face detections
-        consecutive_frames = 0
-        REQUIRED_FRAMES = 10
+        if not cap.isOpened():
+            messagebox.showerror("Error", "Failed to open camera. Please check camera connection.")
+            return
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+        face_system = self.face_system
+        self.detected_students = set()
+        last_capture_time = time.time()
 
         while self.detection_active:
             ret, frame = cap.read()
             if not ret:
                 break
 
-            # Detect faces
-            faces = self.face_system.detect_faces(frame)
+            current_time = time.time()
+            elapsed_time = current_time - last_capture_time
 
-            # Update consecutive frame counter
-            if len(faces) > 0:
-                consecutive_frames += 1
-            else:
-                consecutive_frames = 0
+            if elapsed_time >= 5.0:
+                # ✅ فقط يسوي detection كل 5 ثواني (بدون عرض المعالجة)
+                _, recognized_ids = face_system.process_frame(frame)
+                last_capture_time = current_time
 
-            # Process frame only after 10 consecutive detections
-            if consecutive_frames >= REQUIRED_FRAMES:
-                # Process frame for face detection
-                processed_frame, recognized_ids = self.face_system.process_frame(frame)
-                consecutive_frames = 0  # Reset counter after processing
-
-                # Update detected students and log
                 for student_id in recognized_ids:
-                    if (student_id not in self.detected_students and 
+                    if (student_id not in self.detected_students and
                         student_id in self.local_data['students'][self.study_type][self.branch_type]):
 
                         self.detected_students.add(student_id)
                         student_name = self.local_data['students'][self.study_type][self.branch_type][student_id]['name']
                         timestamp = datetime.now().strftime("%H:%M:%S")
                         log_msg = f"[{timestamp}] {student_name}\n"
-
-                        # Update log with timestamp in main thread
                         self.log_text.after(0, self.update_log, log_msg)
 
-                processed_frame = self.draw_detection_info(processed_frame, faces, consecutive_frames, REQUIRED_FRAMES)
-            else:
-                # Show detection progress
-                processed_frame = self.draw_detection_info(frame.copy(), faces, consecutive_frames, REQUIRED_FRAMES)
+            # ✅ استمر بعرض الفيديو الطبيعي
+            cv2.imshow('Camera Feed', frame)
 
-            # Show camera feed in a resizable window
-            cv2.namedWindow('Camera Feed', cv2.WINDOW_NORMAL)
-            cv2.imshow('Camera Feed', processed_frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
         cap.release()
-    cv2.destroyAllWindows()
-
-    def draw_detection_info(self, frame, faces, current_frames, required_frames):
-        """Draws detection information on the frame."""
-        for face in faces:
-            x, y, w, h = face
-            # Color based on progress
-            if current_frames >= required_frames:
-                color = (0, 255, 0)  # Green for ready
-            else:
-                color = (0, 165, 255)  # Orange for in progress
-
-            cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
-        return frame    
+        cv2.destroyAllWindows()  
 
     def update_log(self, message):
         """Updates the log text safely from any thread."""
