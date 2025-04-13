@@ -47,16 +47,3 @@ def set_attendance(StudentID, Class, LecturerToken, attendance):
 
     except Exception as e:
         print(f"Error setting attendance: {str(e)}")
-
-# Get user input
-#Email = input("Enter your email: \t")
-#Pass = input("Enter your password: \t")
-#Week = int(input("Enter the week number: \t"))
-#StudentEmail = input("Enter the student's email: \t")
-#Subject = input("Enter the subject: \t")
-#
-## Sign in user
-#user = auth.sign_in_with_email_and_password(Email, Pass)
-#
-## Set attendance
-#set_attendance(StudentEmail, Subject, Week, user['idToken'])

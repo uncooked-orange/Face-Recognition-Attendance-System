@@ -10,18 +10,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from GeneralUtilities.UtilityChecks import check_email_valid, check_user_exists
 
-# Get database URL from UserCredentials.json
-firebase_credentials_user = json.load(open("Credentials/UserCredentials.json", "r"))
-database_credential = {"databaseURL": firebase_credentials_user["databaseURL"]}
-
-# Initialize Firebase
-cred = credentials.Certificate("Credentials/AdminCredentials.json")
-fb.initialize_app(cred, database_credential)
-
-# get database reference
-Database = db
-Auth = auth
-
 # Fetch user name before deletion
 def fetch_user_name(Email, database, auth):
     try:
@@ -80,19 +68,32 @@ def delete_user(Email, database, auth):
 
 # Define a class for the Delete User GUI
 class DeleteUserGUI:
-    def __init__(self, root):
+    def __init__(self, root, database, auth):
         self.root = root
         self.root.title("Delete User")
         
+        self.database = database
+        self.Auth = auth
+        
+
         # Configure root window
         self.root.configure(bg='white')
 
         # Set window size and center it
-        window_width = 400
-        window_height = 300
+        window_width = 600
+        window_height = 350
 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
+
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))  # path to script
+        image_path = os.path.join(self.script_dir, "..", "resources", "Icon.ico")
+        image_path = os.path.abspath(image_path)
+
+        self.main_image_path = os.path.join(self.script_dir, "..", "resources", "MainImage.png")
+        self.main_image_path = os.path.abspath(self.main_image_path)
+
+        self.root.iconbitmap(image_path)  # Set the icon for the window
 
         x = (screen_width / 2) - (window_width / 2)
         y = (screen_height / 2) - (window_height / 2)
@@ -181,7 +182,7 @@ class DeleteUserGUI:
             Email = self.email_entry.get()
             
             # Fetch user name
-            self.user_name, self.user_role, self.user_id = fetch_user_name(Email, Database, Auth)
+            self.user_name, self.user_role, self.user_id = fetch_user_name(Email, self.database, self.Auth)
             
             if self.user_name:
                 # Update confirmation label
@@ -205,7 +206,7 @@ class DeleteUserGUI:
             Email = self.email_entry.get()
             
             # Delete the user
-            delete_user(Email, Database, Auth)
+            delete_user(Email, self.database, self.Auth)
             
             # Show a success message
             messagebox.showinfo("Success", f"User {self.user_name} deleted successfully")
@@ -223,8 +224,3 @@ class DeleteUserGUI:
         
         except Exception as e:
             messagebox.showerror("Error", f"Error deleting user: {str(e)}")
-
-# Create the main window
-root = tk.Tk()
-DeleteUserGUI(root)
-root.mainloop()

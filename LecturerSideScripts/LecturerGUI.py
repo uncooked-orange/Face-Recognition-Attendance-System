@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 import jwt
 from datetime import datetime
+from PIL import Image, ImageTk
 import json
 import os
 import cv2
@@ -18,38 +19,44 @@ from LecturerUtilities.StudentJSON import AttendanceManager
 from GeneralUtilities.Detection import FaceRecognitionSystem
 
 firebaseConfig = json.load(open("Credentials/UserCredentials.json","r"))
-
 class SignInApp:
     def __init__(self, root):
         # Initialize Window
         self.root = root
         self.root.title("Attendance Management System")
-
+        
         # Set window size and center it
-        window_width = 650
-        window_height = 300
+        window_width = 600
+        window_height = 350
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         self.x = (screen_width / 2) - (window_width / 2)
         self.y = (screen_height / 2) - (window_height / 2)
         self.root.geometry("%dx%d+%d+%d" % (window_width, window_height, self.x, self.y))
         self.root.resizable(False, False)
-
+        
         # Initializing frames
-        self.mode_selection_frame = tk.Frame(self.root,bg="white")
-        self.sign_in_frame = tk.Frame(self.root,bg="white")
-        self.classes_frame = tk.Frame(self.root,bg="white")
-        self.study_frame = tk.Frame(self.root,bg="white")
-        self.attendance_taking_method_frame = tk.Frame(self.root,bg="white")
-        self.select_week_frame = tk.Frame(self.root,bg="white")
-        self.camera_frame = tk.Frame(self.root,bg="white")
-        self.detection_frame = tk.Frame(self.root,bg="white")
-        self.attendance_frame = tk.Frame(self.root,bg="white")
-        self.branch_frame = tk.Frame(self.root,bg="white")
-
+        self.intro_frame = tk.Frame(self.root, bg="white")
+        self.mode_selection_frame = tk.Frame(self.root, bg="white")
+        self.sign_in_frame = tk.Frame(self.root, bg="white")
+        self.classes_frame = tk.Frame(self.root, bg="white")
+        self.study_frame = tk.Frame(self.root, bg="white")
+        self.attendance_taking_method_frame = tk.Frame(self.root, bg="white")
+        self.select_week_frame = tk.Frame(self.root, bg="white")
+        self.camera_frame = tk.Frame(self.root, bg="white")
+        self.detection_frame = tk.Frame(self.root, bg="white")
+        self.attendance_frame = tk.Frame(self.root, bg="white")
+        self.branch_frame = tk.Frame(self.root, bg="white")
+        
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))  # path to script
+        icon_path = os.path.join(self.script_dir, "..", "resources", "Icon.ico")
+        icon_path = os.path.abspath(icon_path)
+        
+        self.root.iconbitmap(icon_path)  # Set the icon for the window
+        
         # Style the root
         self.root.configure(bg="white")
-
+        
         # Create style templates
         style = ttk.Style()
         
@@ -57,32 +64,101 @@ class SignInApp:
         style.theme_use('clam')  # Using 'clam' theme for better custom styling
         
         # Create a custom button style with full blue background
-        style.configure('Blue.TButton', 
+        style.configure('Blue.TButton',
                         background='#3498DB',   # Blue background
                         foreground='white',     # White text
                         font=('Arial', 10, 'bold'))
         
         # Map additional states for hover and active states
         style.map('Blue.TButton',
-                  background=[('active', '#2980B9'), 
+                  background=[('active', '#2980B9'),
                               ('pressed', '#21618C')],
-                  foreground=[('active', 'white'), 
+                  foreground=[('active', 'white'),
                               ('pressed', 'white')])
-
-        # Configure the OptionMenu style
-        style.configure('Custom.TMenubutton', 
-                background='white', 
-                foreground='#2C3E50',  # Dark text color
-                font=('Arial', 10),
-                borderwidth=1,
-                relief='solid')
         
-
+        # Configure the OptionMenu style
+        style.configure('Custom.TMenubutton',
+                        background='white',
+                        foreground='#2C3E50',  # Dark text color
+                        font=('Arial', 10),
+                        borderwidth=1,
+                        relief='solid')
+        
         # Initialize attendance manager and local data
         self.attendance_manager = None
-
-        # Display the mode selection frame initially
-        self.show_mode_selection_frame()
+        
+        # Setup intro frame
+        self.setup_intro_frame()
+        
+        # Display the intro frame initially
+        self.show_intro_frame()
+    
+    def setup_intro_frame(self):
+        """Setup the introduction frame with main image and start button"""
+        # clear all frames
+        self.clear_frames()
+        # Create and configure the intro frame to fill the window
+        self.intro_frame.pack(fill=tk.BOTH, expand=True)
+        self.intro_frame.pack_propagate(False)
+        self.intro_frame.configure(width=650, height=300)
+        
+        # Load the main image
+        main_image_path = os.path.join(self.script_dir, "..", "resources", "MainImage.png")
+        main_image_path = os.path.abspath(main_image_path)
+        
+        try:
+            # Use PIL to open the image
+            image = Image.open(main_image_path)
+            
+            # Resize if needed to fit the frame while maintaining aspect ratio
+            max_width, max_height = 400, 150
+            img_width, img_height = image.size
+            
+            # Calculate new dimensions to maintain aspect ratio
+            if img_width > max_width or img_height > max_height:
+                ratio = min(max_width/img_width, max_height/img_height)
+                img_width = int(img_width * ratio)
+                img_height = int(img_height * ratio)
+                image = image.resize((img_width, img_height), Image.LANCZOS)
+            
+            # Convert to PhotoImage for Tkinter
+            self.main_image = ImageTk.PhotoImage(image)
+            
+            # Create a label to display the image
+            image_label = tk.Label(self.intro_frame, image=self.main_image, bg="white")
+            image_label.pack(pady=(20, 10))
+            
+        except Exception as e:
+            # If image loading fails, show an error message instead
+            error_label = tk.Label(self.intro_frame, 
+                                    text="Unable to load image.\nPlease ensure 'MainImage.png' is in the resources folder.",
+                                    bg="white", fg="red", font=("Arial", 12))
+            error_label.pack(pady=(50, 10))
+            print(f"Error loading image: {e}")
+        
+        # Welcome text
+        welcome_label = tk.Label(self.intro_frame, 
+                                 text="Welcome to Attendance Management System",
+                                 bg="white", fg="#2C3E50", font=("Arial", 14, "bold"))
+        welcome_label.pack(pady=(5, 15))
+        
+        # Start button
+        start_button = ttk.Button(self.intro_frame, text="Get Started", 
+                                  style='Blue.TButton', 
+                                  command=self.show_mode_selection_frame)
+        start_button.pack(pady=(0, 20))
+    
+    def show_intro_frame(self):
+        """Show the introduction frame and hide all others"""
+        # Hide all frames
+        for frame in (self.mode_selection_frame, self.sign_in_frame, self.classes_frame, 
+                     self.study_frame, self.attendance_taking_method_frame, 
+                     self.select_week_frame, self.camera_frame, self.detection_frame, 
+                     self.attendance_frame, self.branch_frame):
+            frame.pack_forget()
+        
+        # Show intro frame
+        self.intro_frame.pack(fill=tk.BOTH, expand=True)
     
     def show_mode_selection_frame(self):
         """Displays the mode selection frame with Online and Offline options."""
@@ -588,50 +664,84 @@ class SignInApp:
         self.camera_thread.start()
 
     def run_detection(self):
+        """Run face detection and recognition with bounding boxes."""
+        # Initialize camera
         cap = cv2.VideoCapture(self.camera_index)
-
         if not cap.isOpened():
             messagebox.showerror("Error", "Failed to open camera. Please check camera connection.")
             return
-
+    
+        # Set camera properties
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
+    
+        # Initialize variables
         face_system = self.face_system
         self.detected_students = set()
-        last_capture_time = time.time()
-
+        last_detection_time = time.time()
+        detection_interval = 5.0  # Detection performed every 5 seconds
+        
+        # Main processing loop
         while self.detection_active:
             ret, frame = cap.read()
             if not ret:
+                print("Failed to grab frame")
                 break
-
+            
+            display_frame = frame.copy()  # Create a copy for display purposes
             current_time = time.time()
-            elapsed_time = current_time - last_capture_time
-
-            if elapsed_time >= 5.0:
-                # ✅ فقط يسوي detection كل 5 ثواني (بدون عرض المعالجة)
+            
+            # Detect faces in every frame for drawing bounding boxes
+            faces = face_system.detect_faces(frame)
+            
+            # Draw bounding boxes for all detected faces
+            if faces is not None:
+                for face in faces:
+                    # Extract face coordinates
+                    x, y, w, h = face[:4]  # First 4 elements should be bounding box coordinates
+                    
+                    # Draw rectangle around face
+                    cv2.rectangle(display_frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            
+            # Perform recognition only every 5 seconds
+            if current_time - last_detection_time >= detection_interval:
+                # Process frame for recognition
                 _, recognized_ids = face_system.process_frame(frame)
-                last_capture_time = current_time
-
-                for student_id in recognized_ids:
-                    if (student_id not in self.detected_students and
-                        student_id in self.local_data['students'][self.study_type][self.branch_type]):
-
-                        self.detected_students.add(student_id)
-                        student_name = self.local_data['students'][self.study_type][self.branch_type][student_id]['name']
-                        timestamp = datetime.now().strftime("%H:%M:%S")
-                        log_msg = f"[{timestamp}] {student_name}\n"
-                        self.log_text.after(0, self.update_log, log_msg)
-
-            # ✅ استمر بعرض الفيديو الطبيعي
-            cv2.imshow('Camera Feed', frame)
-
+                last_detection_time = current_time
+                
+                # Update UI with newly detected students
+                self.process_recognized_students(recognized_ids)
+                    
+            # Display frame with bounding boxes
+            cv2.imshow('Camera Feed', display_frame)
+            
+            # Check for quit command
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
+            
+        # Clean up
         cap.release()
-        cv2.destroyAllWindows()  
+        cv2.destroyAllWindows()
+    
+    def process_recognized_students(self, recognized_ids):
+        """Process recognized student IDs and update UI."""
+        for student_id in recognized_ids:
+            # Check if this is a new detection and student exists in our database
+            if (student_id not in self.detected_students and 
+                student_id in self.local_data['students'][self.study_type][self.branch_type]):
+                
+                # Add to detected set
+                self.detected_students.add(student_id)
+                
+                # Get student name
+                student_name = self.local_data['students'][self.study_type][self.branch_type][student_id]['name']
+                
+                # Format and log detection
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                log_msg = f"[{timestamp}] {student_name}\n"
+                
+                # Update UI in thread-safe way
+                self.log_text.after(0, self.update_log, log_msg)  
 
     def update_log(self, message):
         """Updates the log text safely from any thread."""
@@ -712,7 +822,6 @@ class SignInApp:
         self.camera_index = int(camera_str.split()[-1])
         self.show_detection_frame()
 
-    # Display Attendance Frame (Manual Mode)
     def show_attendance_frame(self):
         """
         Displays the attendance frame as a paginated table with student names as rows and weeks as columns with checkboxes.
@@ -727,7 +836,7 @@ class SignInApp:
         """
         self.clear_frames()
 
-        self.students_per_page = 10
+        self.students_per_page = 8
         self.current_page = 0
         self.student_attendances = {}
 
@@ -769,69 +878,131 @@ class SignInApp:
         """Displays the students on the current page with attendance checkboxes for each week."""
         # Clear all frames
         self.clear_frames()
-        
+
+        # Define name column width in characters (reduced for more space)
+        name_max_width = 20  # Reduced from 20 to 15
+        name_column_width = 50  # Reduced pixel width
+
+        # Configure the attendance frame to use a more efficient grid
+        self.attendance_frame.grid_columnconfigure(0, minsize=name_column_width)  # Fixed width for name column
+        for week in range(1, 14):
+            self.attendance_frame.grid_columnconfigure(week, minsize=35)  # Smaller fixed width for week columns
+
         # Week header (Weeks 1-13 as columns)
-        tk.Label(self.attendance_frame,background="white", text="Name", font=("Arial", 10, "bold")).grid(row=1, column=0, padx=5, pady=5)
+        name_header = tk.Label(self.attendance_frame, background="white", text="Name", 
+                             font=("Arial", 9, "bold"))  # Smaller font
+        name_header.grid(row=1, column=0, padx=2, pady=3, sticky="w")  # Reduced padding
+
         for week in range(1, 14):  # Assuming 13 weeks
-            tk.Label(self.attendance_frame,background="white", text=f"{week}", font=("Arial", 10, "bold")).grid(row=1, column=week, padx=5, pady=5)
-    
+            tk.Label(self.attendance_frame, background="white", text=f"{week}", 
+                   font=("Arial", 9, "bold")).grid(row=1, column=week, padx=2, pady=3)  # Reduced padding
+
         # Determine which students to display for the current page
         start_index = self.current_page * self.students_per_page
         end_index = start_index + self.students_per_page
         current_students = self.all_students[start_index:end_index]
-    
+
         row_index = 2
         for student_id, student_info in current_students:
             student_name = list(student_info.keys())[0]
-            tk.Label(self.attendance_frame,background="white", text=student_name).grid(row=row_index, column=0, padx=5, pady=5, sticky="w")
-    
+
+            # Format name to fit within constraints (single line with ellipsis)
+            formatted_name = self.truncate_name(student_name, name_max_width)
+
+            # Create a label with fixed width
+            name_label = tk.Label(self.attendance_frame, background="white", text=formatted_name,
+                                font=("Arial", 9), anchor="w")  # Smaller font
+            name_label.grid(row=row_index, column=0, padx=2, pady=2, sticky="w")  # Reduced padding
+
             # Initialize attendance dictionary for the student
             self.student_attendances[student_id] = {}
-    
+
             # Create checkboxes for each week (present/absent for each week)
             for week in range(1, 14):
                 week_var = tk.BooleanVar()  # Track presence for each week
-                checkbox = tk.Checkbutton(self.attendance_frame,background="white", variable=week_var, onvalue=True, offvalue=False)
-    
+
+                # Use a more compact checkbox
+                checkbox = tk.Checkbutton(self.attendance_frame, background="white", 
+                                        variable=week_var, onvalue=True, offvalue=False,
+                                        padx=0, pady=0)  # Minimal internal padding
+
                 # Check the checkbox if the student was present in this week
                 checkbox.select() if student_info[student_name][week-1] else checkbox.deselect()
-                checkbox.grid(row=row_index, column=week, padx=5, pady=5)
-    
+                checkbox.grid(row=row_index, column=week, padx=1, pady=2)  # Minimal padding
+
                 # Save the checkbox variable in the student's weekly attendance record
                 self.student_attendances[student_id][week-1] = week_var
-    
+
             row_index += 1
-    
-        # Back, Save, Next, and Previous buttons
-        back_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Back", command=self.show_study_frame)
-        back_btn.grid(row=row_index, column=5, columnspan=2, pady=10, sticky="ew")
+
+        # Create a frame for buttons to center them
+        button_frame = tk.Frame(self.attendance_frame, background="white")
+        button_frame.grid(row=row_index, column=0, columnspan=14, pady=10)
+
+        # Buttons with slightly reduced width
+        button_width = 12  # Reduced from 12
+
+        # Back button
+        back_btn = ttk.Button(button_frame, style="Blue.TButton", text="Back", 
+                            command=self.show_study_frame, width=button_width)
+        back_btn.pack(side=tk.LEFT, padx=5)  # Reduced padding
+
+        # Save button
+        save_btn = ttk.Button(button_frame, style="Blue.TButton", text="Save", 
+                            command=self.save_attendance, width=button_width)
+        save_btn.pack(side=tk.LEFT, padx=5)  # Reduced padding
         
-        save_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Save", command=self.save_attendance)
-        save_btn.grid(row=row_index, column=7, columnspan=2, pady=10, sticky="ew")
-    
+        # Previous button (only if not on first page)
         if self.current_page > 0:
-            prev_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Previous", command=self.previous_page)
-            prev_btn.grid(row=row_index, column=9, columnspan=2, pady=10, sticky="ew")
-        
+            prev_btn = ttk.Button(button_frame, style="Blue.TButton", text="Previous", 
+                                command=self.previous_page, width=button_width)
+            prev_btn.pack(side=tk.LEFT, padx=5)  # Reduced padding
+
+        # Next button (only if not on last page)
         if self.current_page < self.total_pages - 1:
-            next_btn = ttk.Button(self.attendance_frame,style="Blue.TButton", text="Next", command=self.next_page)
-            next_btn.grid(row=row_index, column=11, columnspan=2, pady=10, sticky="ew")
-    
-        # Pack the frame
-        self.attendance_frame.pack(fill="both", expand=True)
-    
+            next_btn = ttk.Button(button_frame, style="Blue.TButton", text="Next", 
+                                command=self.next_page, width=button_width)
+            next_btn.pack(side=tk.LEFT, padx=5)  # Reduced padding
+
+        # Add page indicator
+        page_label = tk.Label(button_frame, background="white", 
+                            text=f"Page {self.current_page + 1} of {self.total_pages}",
+                            font=("Arial", 9))  # Smaller font
+        page_label.pack(side=tk.LEFT, padx=10)
+
+        # Pack the frame with some padding to keep elements from touching window edges
+        self.attendance_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+    def truncate_name(self, name, max_width):
+        """
+        Truncate a name to fit within max_width characters and add ellipsis if needed.
+        For Arabic names, the ellipsis is added at the beginning instead of the end.
+
+        Args:
+            name (str): The original student name
+            max_width (int): Maximum number of characters
+
+        Returns:
+            str: Truncated name with ellipsis if needed
+        """
+        if len(name) <= max_width:
+            return name
+        else:
+            # For non-Arabic names, truncate from the end and put ellipsis at the end
+            return  '...' + name[:max_width-3]
+
     def next_page(self):
         """Go to the next page of students."""
         if self.current_page < self.total_pages - 1:
             self.current_page += 1
             self.display_students_page()
-    
+
     def previous_page(self):
         """Go to the previous page of students."""
         if self.current_page > 0:
             self.current_page -= 1
             self.display_students_page()
-        
+
     # Clear Frames
     def clear_frame(self, frame):
         """Clears all contents from the specified frame."""
@@ -841,7 +1012,7 @@ class SignInApp:
     def clear_frames(self):
         """Clears and unpacks all frames."""
         frames = [
-            self.mode_selection_frame, self.sign_in_frame, self.classes_frame,
+            self.intro_frame, self.mode_selection_frame, self.sign_in_frame, self.classes_frame,
             self.study_frame, self.attendance_taking_method_frame,
             self.select_week_frame, self.camera_frame, self.detection_frame, self.attendance_frame, 
             self.branch_frame

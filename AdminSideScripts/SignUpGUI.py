@@ -15,25 +15,15 @@ from AdminUtilities.SignUp import sign_up_lecturer, sign_up_student
 from GeneralUtilities.UtilityChecks import check_student_info
 from GeneralUtilities.Detection import FaceRecognitionSystem
 
-# Get database URL from UserCredentials.json
-firebase_credentials_user = json.load(open("Credentials/UserCredentials.json", "r"))
-database_credential = {"databaseURL" : firebase_credentials_user["databaseURL"]}
-
-# Initialize Firebase
-try:
-    cred = credentials.Certificate("Credentials/AdminCredentials.json")
-    fb.initialize_app(cred, database_credential)
-    database = db
-    Auth = auth
-except Exception as e:
-    print(f"Failed to initialize Firebase: {str(e)}")
-    exit()
-
 # Define a class for the SignUp GUI
 class SignUpApp:
-    def __init__(self, root):
+    def __init__(self, root, database, Auth):
         self.root = root
         self.root.title("Sign Up")
+
+        self.database = database
+        self.Auth = Auth
+        self.face_image_path = None  # Initialize face image path
 
         # Set window size and center it
         window_width = 600
@@ -43,6 +33,12 @@ class SignUpApp:
         self.x = (screen_width / 2) - (window_width / 2)
         self.y = (screen_height / 2) - (window_height / 2)
         self.root.geometry(f"{window_width}x{window_height}+{int(self.x)}+{int(self.y)}")
+
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))  # path to script
+        image_path = os.path.join(self.script_dir, "..", "resources", "Icon.ico")
+        image_path = os.path.abspath(image_path)
+
+        self.root.iconbitmap(image_path)  # Set the icon for the window
         
         # Style the root
         self.root.configure(bg="white")
@@ -82,7 +78,7 @@ class SignUpApp:
         frame = tk.Frame(self.root,bg="white")
         frame.pack(pady=20, padx=20)
 
-        tk.Label(frame, text="Select Role", font=("Arial", 14), background="white").pack(pady=10)
+        tk.Label(frame, text="Select Which Role To Create An Account For", font=("Arial", 14), background="white").pack(pady=10)
         
         # Radiobuttons for selecting role and set default value to Student
         self.role_variable.set("Student")
@@ -282,7 +278,7 @@ class SignUpApp:
         tk.Entry(frame, textvariable=self.name_variable).grid(row=5, column=1, sticky="w")
         
         # Stages selection
-        tk.Label(frame,background="white", text="Stages:").grid(row=6, column=0, sticky="w")
+        tk.Label(frame,background="white", text="Stages Taught:").grid(row=6, column=0, sticky="w")
         stages_frame = tk.Frame(frame,background="white")
         stages_frame.grid(row=6, column=1, sticky="w", padx=5)
         for stage in range(1, 5):
@@ -558,8 +554,8 @@ class SignUpApp:
                           self.student_data["stage"],
                           self.student_data["branch"],
                           self.student_data["embeddings"],  # Now sending the list of embeddings
-                          database,
-                          Auth)
+                          self.database,
+                          self.Auth)
             messagebox.showinfo("Success", "Student data submitted with 5 face images.")
 
             # Reset for next student
@@ -602,7 +598,7 @@ class SignUpApp:
         # Get Classes from the database according to the selected branches and stages
         self.classes_by_stage_dict = {}
         try:
-            classes = database.reference("/").child("Classes").get()
+            classes = self.database.reference("/").child("Classes").get()
             if classes:
                 for class_id, class_data in classes.items():
                     stage = str(class_data["stage"])
@@ -625,7 +621,7 @@ class SignUpApp:
     def submit_lecturer(self):
         # Submit lecturer data
         try:
-            sign_up_lecturer(self.email_variable.get(), self.password_variable.get(), self.selected_classes, self.name_variable.get(), database, Auth)
+            sign_up_lecturer(self.email_variable.get(), self.password_variable.get(), self.selected_classes, self.name_variable.get(), self.database, self.Auth)
             messagebox.showinfo("Success", "Lecturer data submitted.")
         except Exception as e:
             print(f"Failed to sign up lecturer: {str(e)}")
@@ -633,8 +629,3 @@ class SignUpApp:
         # Go back to role selection frame
         self.show_role_selection_frame()
         return
-    
-# Main
-root = tk.Tk()
-app = SignUpApp(root)
-root.mainloop()

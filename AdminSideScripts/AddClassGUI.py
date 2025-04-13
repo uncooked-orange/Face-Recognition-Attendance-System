@@ -11,27 +11,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from GeneralUtilities.UtilityChecks import check_branch_valid, check_stage_valid, check_semester_valid, check_class_exists, check_class_name_valid
 
-firebase_credentials_user = json.load(open("Credentials/UserCredentials.json", "r"))
-database_credential = {"databaseURL" : firebase_credentials_user["databaseURL"]}
-
-# Initialize Firebase
-def initialize_firebase():
-    try:
-        cred = credentials.Certificate("Credentials/AdminCredentials.json")
-        fb.initialize_app(cred, database_credential)
-        return db
-    except Exception as e:
-        print(f"Failed to initialize Firebase: {str(e)}")
-        return None
-
-database = initialize_firebase()
-
 # Function to add a class to the database
-def add_class(class_name, branches, stage, semesters, database_ref):
+def add_class(class_name, branches, stage, semesters, database):
     # Validate input fields
     if not check_class_name_valid(class_name):
         raise ValueError("Invalid class name")
-    if check_class_exists(class_name, database_ref):
+    if check_class_exists(class_name, database):
         raise ValueError(f"Class {class_name} already exists")
     if not check_branch_valid(branches):
         raise ValueError("Invalid branch")
@@ -41,7 +26,7 @@ def add_class(class_name, branches, stage, semesters, database_ref):
         raise ValueError("Invalid semester")
 
     # Set data in the database
-    database_ref.reference('/').child(f"Classes/{class_name}").set({
+    database.reference('/').child(f"Classes/{class_name}").set({
         'branch': branches,
         'stage': stage,
         'semester': semesters
@@ -51,12 +36,18 @@ def add_class(class_name, branches, stage, semesters, database_ref):
 
 # Define a class for the Add Class GUI
 class AddClassApp:
-    def __init__(self, root, database_ref=database):
+    def __init__(self, root, database):
         self.root = root
         self.root.title("Add Class")
-        self.database = database_ref
-        self.root.iconbitmap(r"C:\Users\hp\OneDrive\Desktop\Projects\Python_projects\GUI\hasan.ico")
 
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))  # path to script
+        image_path = os.path.join(self.script_dir, "..", "resources", "Icon.ico")
+        image_path = os.path.abspath(image_path)
+
+        self.database = database
+        self.root.iconbitmap(image_path)  # Set the icon for the window
+
+        # Check if Firebase database is initialized
         if not self.database:
             messagebox.showerror("Error", "Failed to initialize Firebase database")
             self.root.destroy()
@@ -91,7 +82,7 @@ class AddClassApp:
                 relief='solid')
 
         # Set window size and center it
-        window_width = 400
+        window_width = 450
         window_height = 300
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -173,8 +164,3 @@ class AddClassApp:
         self.branch_ne_var.set(0)
         self.semester_1_var.set(0)
         self.semester_2_var.set(0)
-
-# Create and run the AddClassApp in a standalone Tkinter window
-root = tk.Tk()
-app = AddClassApp(root, database)
-root.mainloop()

@@ -43,12 +43,12 @@ class FaceRecognitionSystem:
         
         # Quality assessment parameters
         self.min_face_size = 100
-        self.min_sharpness = 100
-        self.min_brightness = 40
-        self.max_brightness = 220
+        self.min_sharpness = 10
+        self.min_brightness = 20
+        self.max_brightness = 300
         
         # Matching parameters
-        self.match_threshold = 0.40  # Stricter threshold for matching
+        self.match_threshold = 0.5  # Stricter threshold for matching
         
         # Store embedding dimensions to verify consistency
         self.embedding_dim = None
@@ -234,26 +234,53 @@ class FaceRecognitionSystem:
         bool
             True if face passes quality checks, False otherwise
         """
-        # Check image sharpness
-        gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
-        laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+        try:
+            # Check image sharpness
+            gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
+            laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+        except Exception as e:
+            print(f"Error calculating sharpness: {e}")
+            return False
         
-        # Check illumination
-        brightness = np.mean(gray)
+        try:
+            # Check illumination
+            brightness = np.mean(gray)
+        except Exception as e:
+            print(f"Error calculating brightness: {e}")
+            return False
         
-        # Check face size
-        height, width = face_img.shape[:2]
-        face_size = min(height, width)
+        try:
+            # Check face size
+            height, width = face_img.shape[:2]
+            face_size = min(height, width)
+        except Exception as e:
+            print(f"Error calculating face size: {e}")
+            return False
         
-        # Return True if face passes quality checks
-        quality_passed = (
-            laplacian_var > self.min_sharpness and 
-            brightness > self.min_brightness and 
-            brightness < self.max_brightness and
-            face_size > self.min_face_size
-        )
-        
-        return quality_passed
+        try:
+            # Check sharpness
+            if laplacian_var <= self.min_sharpness:
+                print(f"Sharpness check failed: {laplacian_var} <= {self.min_sharpness}")
+                return False
+
+            # Check brightness
+            if brightness <= self.min_brightness:
+                print(f"Brightness too low: {brightness} <= {self.min_brightness}")
+                return False
+            if brightness >= self.max_brightness:
+                print(f"Brightness too high: {brightness} >= {self.max_brightness}")
+                return False
+
+            # Check face size
+            if face_size <= self.min_face_size:
+                print(f"Face size too small: {face_size} <= {self.min_face_size}")
+                return False
+
+            # If all checks pass
+            return True
+        except Exception as e:
+            print(f"Error evaluating quality checks: {e}")
+            return False
 
     def extract_features(self, face: np.ndarray) -> List[float]:
         """
@@ -290,45 +317,6 @@ class FaceRecognitionSystem:
             
         return embedding[0]['embedding']
 
-    def extract_biometric_features(self, face: np.ndarray) -> Dict:
-        """
-        Extract multiple biometric features using DeepFace
-        
-        Parameters
-        ----------
-        face : numpy.ndarray
-            Aligned face image
-        
-        Returns
-        -------
-        Dict
-            Dictionary containing embedding and other biometric features
-        """
-        # Convert to RGB
-        face_rgb = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
-        
-        # Extract main embedding
-        embedding = DeepFace.represent(
-            face_rgb, 
-            model_name="Facenet", 
-            enforce_detection=False
-        )
-        
-        # Extract additional features (can be commented out if not needed)
-        try:
-            analysis = DeepFace.analyze(face_rgb, actions=['gender', 'age'], enforce_detection=False)
-            features = {
-                'embedding': embedding[0]['embedding'],
-                'gender': analysis[0]['gender'],
-                'age': analysis[0]['age']
-            }
-        except Exception as e:
-            print(f"Error analyzing face: {e}")
-            features = {
-                'embedding': embedding[0]['embedding']
-            }
-        
-        return features
 
     def add_to_database(self, ID: str, embedding: List[float]) -> None:
         """
@@ -364,8 +352,9 @@ class FaceRecognitionSystem:
 
     def match_face(self, embedding: List[float], threshold: float = None) -> Optional[str]:
         """
-        Match a face embedding against the database with multiple embeddings per person.
-        Returns the ID of the best match or None if no match under threshold.
+        Match a face embedding against the database by calculating the average cosine similarity 
+        across all embeddings for each person. Returns the ID of the best match or None if no 
+        match under threshold.
         """
         if threshold is None:
             threshold = self.match_threshold
@@ -377,8 +366,9 @@ class FaceRecognitionSystem:
             print(f"Warning: Input embedding dimension {len(embedding)} doesn't match expected {self.embedding_dim}")
             return None
     
-        min_distance = float('inf')
+        best_avg_distance = float('inf')
         best_match_id = None
+        embedding_array = np.array(embedding).flatten()
     
         for ID, embeddings in self.face_database.items():
             try:
@@ -399,86 +389,33 @@ class FaceRecognitionSystem:
                         continue
                     valid_embeddings.append(np.array(embeddings).flatten())
     
-                # Calculate all distances for this ID
+                # Skip if no valid embeddings
+                if not valid_embeddings:
+                    continue
+                    
+                # Calculate average distance across all embeddings for this ID
+                total_distance = 0
                 for db_embedding in valid_embeddings:
-                    distance = cosine(embedding, db_embedding)
-                    if distance < min_distance:
-                        min_distance = distance
-                        best_match_id = ID
-    
-                    # Early exit if very close match
-                    if min_distance < 0.2:
-                        break
+                    total_distance += cosine(embedding_array, db_embedding)
+                
+                avg_distance = total_distance / len(valid_embeddings)
+
+                print(f"ID: {ID}, Avg Distance: {avg_distance:.4f}")
+                
+                # Update best match if this average is better
+                if avg_distance < best_avg_distance:
+                    best_avg_distance = avg_distance
+                    best_match_id = ID
                     
             except Exception as e:
                 print(f"Error processing ID {ID}: {e}")
                 continue
             
-        if min_distance < threshold:
-            print(f"Match found: {best_match_id} with distance {min_distance:.4f}")
+        if best_avg_distance < threshold:
+            print(f"Match found: {best_match_id} with average distance {best_avg_distance:.4f}")
             return best_match_id
     
         return None
-
-    def get_min_distance(self, embedding: List[float], match_id: str) -> float:
-        """
-        Get the minimum distance for a particular match
-    
-        Parameters
-        ----------
-        embedding : List[float]
-            Face embedding
-        match_id : str
-            ID of the match to get distance for
-    
-        Returns
-        -------
-        float
-            Distance for the match
-        """
-        if match_id in self.face_database:
-            try:
-                embeddings = self.face_database[match_id]
-                
-                if isinstance(embeddings, list):
-                    if not embeddings or not embeddings[0]:
-                        return float('inf')
-                        
-                    # Check if this is a list of embeddings or a single embedding
-                    if isinstance(embeddings[0], list):  # Multiple embeddings
-                        # Ensure each embedding is 1D and has correct dimension
-                        valid_embeddings = []
-                        for emb in embeddings:
-                            # Skip any empty or non-list embeddings
-                            if not emb or not isinstance(emb, list):
-                                continue
-                                
-                            # Check dimension
-                            if len(emb) != self.embedding_dim:
-                                print(f"Dimension mismatch for ID {match_id}: expected {self.embedding_dim}, got {len(emb)}")
-                                continue
-                                
-                            # Convert to numpy array if needed and flatten
-                            emb_array = np.array(emb).flatten()
-                            valid_embeddings.append(emb_array)
-                        
-                        if valid_embeddings:
-                            # Calculate distances using valid embeddings
-                            distances = [cosine(embedding, db_embedding) for db_embedding in valid_embeddings]
-                            return min(distances)
-                    else:  # Single embedding
-                        # Check dimension
-                        if len(embeddings) != self.embedding_dim:
-                            print(f"Dimension mismatch for ID {match_id}: expected {self.embedding_dim}, got {len(embeddings)}")
-                            return float('inf')
-                            
-                        # Convert to numpy array and flatten to ensure 1D
-                        emb_array = np.array(embeddings).flatten()
-                        return cosine(embedding, emb_array)
-            except Exception as e:
-                print(f"Error calculating distance for ID {match_id}: {e}")
-                
-        return float('inf')
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, List[str]]:
         """
@@ -495,10 +432,7 @@ class FaceRecognitionSystem:
 
                 # Check quality
                 if not self.assess_face_quality(aligned_face):
-                    x, y, w, h = face
-                    cv2.rectangle(display_frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
-                    cv2.putText(display_frame, "Low Quality", (x, y-10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                    print("Face quality check failed.")
                     continue
 
                 # Extract features
@@ -509,17 +443,8 @@ class FaceRecognitionSystem:
 
                 x, y, w, h = face
                 if match:
-                    confidence = 1.0 - self.get_min_distance(embedding, match)
-                    label = f"{match} ({confidence:.2f})"
-                    cv2.rectangle(display_frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                    cv2.putText(display_frame, label, (x, y-10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                     recognized_names.append(match)
-                else:
-                    cv2.rectangle(display_frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-                    cv2.putText(display_frame, "Unknown", (x, y-10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-
+                    
             except Exception as e:
                 print(f"Error processing face: {e}")
 
