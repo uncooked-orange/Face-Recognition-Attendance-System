@@ -30,12 +30,14 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
 
 2. **Install Python and Requirements:**
    - Make sure you have python installed with the `˅3.9` version as I'm not sure it would work on newer versions
-   - Run the command
-   - Install CMAKE for the dlib library
+   - Install CMAKE from their website and add it to the environment variables for the dlib library to work
    - Run the following command:
+     
    ```bash
    pip install -r requirements.txt
    ```
+
+   - If you find any missing libraries when executing one of the scripts please do install them until i add all of them
 
 3. **Set up Firebase:**
    - Create a Firebase project on the [Firebase Console](https://console.firebase.google.com/).
@@ -49,8 +51,8 @@ A Python-based Attendance System with a graphical user interface (GUI) built usi
    - Download the dlib `Shape_predictor_68_face_landmarks.dat` and add it to the `Models` folder
   
 5. **Separate into the ADMIN side and the LECTURER side**
-   - When actually deploying, make sure the `LecturerSideScripts, LecturerUtilities, GeneralUtilities` and only the `UserCredentials` of the `Credentials` folder and all the models in the `Models` folder are on the lecturer side machine
-   - Put the `AdminSideScripts, AdminUtilities, GeneralUtilities` and both the `UserCredentials, AdminCredentials` and all the models
+   - When actually deploying, make sure the `LecturerSideScripts, LecturerUtilities, GeneralUtilities` and only the `UserCredentials` of the `Credentials` folder and all the models in the `Models` folder are on the lecturer side machine.
+   - Put the `AdminSideScripts, AdminUtilities, GeneralUtilities` and both the `UserCredentials, AdminCredentials` in a `credentials` folder and all the models as well in a `Models` folder.
      
 6. **Run the application:**
 
